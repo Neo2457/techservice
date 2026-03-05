@@ -1,0 +1,2585 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TechService Pro — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+  :root {
+    --bg: #0a0b0f;
+    --bg2: #111318;
+    --bg3: #181b22;
+    --card: #1c1f28;
+    --border: #252933;
+    --accent: #f0a500;
+    --accent2: #ff6b35;
+    --accent3: #00d4aa;
+    --text: #e8eaf0;
+    --text2: #8b8fa8;
+    --text3: #5a5e72;
+    --danger: #ff4757;
+    --success: #2ed573;
+    --info: #1e90ff;
+    --purple: #a855f7;
+    --sidebar-w: 260px;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  /* ===== LOGIN ===== */
+  #login-screen {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: var(--bg);
+    background-image: 
+      radial-gradient(ellipse 80% 60% at 20% 80%, rgba(240,165,0,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 80% at 80% 20%, rgba(0,212,170,0.06) 0%, transparent 60%);
+  }
+
+  .login-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    max-width: 900px;
+    width: 90%;
+    min-height: 520px;
+    border-radius: 24px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    box-shadow: 0 40px 80px rgba(0,0,0,0.6);
+  }
+
+  .login-brand {
+    background: linear-gradient(135deg, #0d0e14 0%, #1a1d28 100%);
+    padding: 60px 48px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .login-brand::before {
+    content: '';
+    position: absolute;
+    width: 300px; height: 300px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(240,165,0,0.15) 0%, transparent 70%);
+    top: -80px; left: -80px;
+  }
+
+  .login-brand::after {
+    content: '';
+    position: absolute;
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,212,170,0.1) 0%, transparent 70%);
+    bottom: -40px; right: -40px;
+  }
+
+  .brand-logo {
+    font-family: 'Syne', sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: -1px;
+    margin-bottom: 16px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .brand-logo span { color: var(--text); }
+
+  .brand-tagline {
+    font-size: 14px;
+    color: var(--text2);
+    line-height: 1.7;
+    position: relative;
+    z-index: 1;
+    max-width: 240px;
+  }
+
+  .brand-stats {
+    display: flex;
+    gap: 24px;
+    margin-top: 48px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .brand-stat { text-align: left; }
+  .brand-stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .brand-stat-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .login-form-area {
+    background: var(--bg2);
+    padding: 60px 48px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .login-form-area h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .login-form-area p { font-size: 14px; color: var(--text2); margin-bottom: 36px; }
+
+  .form-group { margin-bottom: 20px; }
+  .form-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 8px;
+  }
+
+  .input-wrap {
+    position: relative;
+  }
+
+  .input-wrap i.icon-left {
+    position: absolute;
+    left: 14px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--text3);
+    font-size: 14px;
+  }
+
+  .form-input {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 13px 42px 13px 40px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    transition: all 0.2s;
+    outline: none;
+  }
+
+  .form-input:focus {
+    border-color: var(--accent);
+    background: var(--card);
+    box-shadow: 0 0 0 3px rgba(240,165,0,0.1);
+  }
+
+  .toggle-pass {
+    position: absolute;
+    right: 14px; top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text3);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 4px;
+    transition: color 0.2s;
+  }
+  .toggle-pass:hover { color: var(--accent); }
+
+  .btn-primary {
+    width: 100%;
+    background: var(--accent);
+    color: #0a0b0f;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.3px;
+    margin-top: 8px;
+  }
+  .btn-primary:hover { background: #ffc107; transform: translateY(-1px); box-shadow: 0 8px 20px rgba(240,165,0,0.3); }
+  .btn-primary:active { transform: translateY(0); }
+
+  .login-hint { font-size: 12px; color: var(--text3); text-align: center; margin-top: 16px; }
+
+  /* ===== APP SHELL ===== */
+  #app {
+    display: none;
+    min-height: 100vh;
+  }
+
+  .sidebar {
+    position: fixed;
+    left: 0; top: 0; bottom: 0;
+    width: var(--sidebar-w);
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    overflow: hidden;
+  }
+
+  .sidebar-logo {
+    padding: 28px 24px 24px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .sidebar-logo .brand {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: -0.5px;
+  }
+  .sidebar-logo .brand span { color: var(--text); }
+  .sidebar-logo .sub { font-size: 11px; color: var(--text3); margin-top: 2px; text-transform: uppercase; letter-spacing: 1px; }
+
+  .sidebar-nav {
+    flex: 1;
+    padding: 20px 12px;
+    overflow-y: auto;
+  }
+
+  .nav-section-label {
+    font-size: 10px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    padding: 0 12px;
+    margin: 20px 0 8px;
+    font-weight: 600;
+  }
+  .nav-section-label:first-child { margin-top: 0; }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 14px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--text2);
+    transition: all 0.15s;
+    margin-bottom: 2px;
+    border: 1px solid transparent;
+    text-decoration: none;
+  }
+
+  .nav-item i { width: 18px; font-size: 15px; flex-shrink: 0; }
+
+  .nav-item:hover { background: var(--bg3); color: var(--text); }
+
+  .nav-item.active {
+    background: rgba(240,165,0,0.12);
+    color: var(--accent);
+    border-color: rgba(240,165,0,0.2);
+    font-weight: 500;
+  }
+
+  .nav-item .badge {
+    margin-left: auto;
+    background: var(--accent);
+    color: #0a0b0f;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 20px;
+  }
+
+  .sidebar-footer {
+    padding: 16px 12px;
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    margin-bottom: 8px;
+  }
+
+  .user-avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: #0a0b0f;
+    flex-shrink: 0;
+  }
+
+  .user-name { font-size: 13px; font-weight: 500; }
+  .user-role { font-size: 11px; color: var(--text3); }
+
+  .btn-logout {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    background: rgba(255,71,87,0.1);
+    border: 1px solid rgba(255,71,87,0.2);
+    color: var(--danger);
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.15s;
+  }
+  .btn-logout:hover { background: rgba(255,71,87,0.2); }
+
+  /* ===== MAIN CONTENT ===== */
+  .main {
+    margin-left: var(--sidebar-w);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .topbar {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .topbar-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .topbar-actions { display: flex; align-items: center; gap: 12px; }
+
+  .icon-btn {
+    width: 38px; height: 38px;
+    border-radius: var(--radius-sm);
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 15px;
+    transition: all 0.15s;
+  }
+  .icon-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .notif-dot {
+    position: relative;
+  }
+  .notif-dot::after {
+    content: '';
+    position: absolute;
+    top: 6px; right: 6px;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--danger);
+    border: 2px solid var(--bg2);
+  }
+
+  .page { padding: 32px; display: none; }
+  .page.active { display: block; }
+
+  /* ===== DASHBOARD ===== */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 28px;
+  }
+
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s;
+  }
+  .stat-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    right: -20px; top: -20px;
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    opacity: 0.06;
+  }
+
+  .stat-card.orange::before { background: var(--accent); }
+  .stat-card.teal::before { background: var(--accent3); }
+  .stat-card.red::before { background: var(--danger); }
+  .stat-card.purple::before { background: var(--purple); }
+
+  .stat-icon {
+    width: 40px; height: 40px;
+    border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    margin-bottom: 16px;
+  }
+  .stat-icon.orange { background: rgba(240,165,0,0.15); color: var(--accent); }
+  .stat-icon.teal { background: rgba(0,212,170,0.15); color: var(--accent3); }
+  .stat-icon.red { background: rgba(255,71,87,0.15); color: var(--danger); }
+  .stat-icon.purple { background: rgba(168,85,247,0.15); color: var(--purple); }
+
+  .stat-value {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .stat-label { font-size: 13px; color: var(--text2); margin-bottom: 12px; }
+
+  .stat-change {
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .stat-change.up { color: var(--success); }
+  .stat-change.down { color: var(--danger); }
+
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+
+  .widget {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .widget-header {
+    padding: 20px 24px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+
+  .widget-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  .widget-badge {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+  }
+  .wb-orange { background: rgba(240,165,0,0.15); color: var(--accent); }
+  .wb-teal { background: rgba(0,212,170,0.15); color: var(--accent3); }
+
+  .chart-area {
+    padding: 20px 24px 24px;
+  }
+
+  /* Simple bar chart via CSS */
+  .bar-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    height: 140px;
+  }
+
+  .bar-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    height: 100%;
+    justify-content: flex-end;
+  }
+
+  .bar {
+    width: 100%;
+    border-radius: 6px 6px 0 0;
+    background: var(--accent);
+    opacity: 0.7;
+    transition: opacity 0.2s, transform 0.2s;
+    cursor: pointer;
+    position: relative;
+  }
+  .bar:hover { opacity: 1; transform: scaleY(1.03); transform-origin: bottom; }
+  .bar.teal { background: var(--accent3); }
+
+  .bar-label { font-size: 10px; color: var(--text3); }
+
+  .recent-list { padding: 0 24px 24px; }
+
+  .recent-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .recent-item:last-child { border-bottom: none; }
+
+  .ri-avatar {
+    width: 38px; height: 38px;
+    border-radius: var(--radius-sm);
+    background: var(--bg3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+
+  .ri-name { font-size: 13px; font-weight: 500; }
+  .ri-sub { font-size: 11px; color: var(--text2); margin-top: 2px; }
+  .ri-price {
+    margin-left: auto;
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent3);
+  }
+
+  .status-pill {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .sp-pending { background: rgba(240,165,0,0.15); color: var(--accent); }
+  .sp-done { background: rgba(46,213,115,0.15); color: var(--success); }
+  .sp-progress { background: rgba(30,144,255,0.15); color: var(--info); }
+  .sp-delivered { background: rgba(0,212,170,0.15); color: var(--accent3); }
+  .sp-cancelled { background: rgba(255,71,87,0.15); color: var(--danger); }
+
+  .donut-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    gap: 24px;
+  }
+
+  .donut-svg { width: 120px; height: 120px; }
+
+  .donut-legend { display: flex; flex-direction: column; gap: 10px; }
+  .dl-item { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+  .dl-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .dl-label { color: var(--text2); }
+  .dl-val { font-weight: 600; margin-left: auto; font-size: 13px; }
+
+  /* ===== SERVICES MODULE ===== */
+  .page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .page-header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 24px;
+    font-weight: 800;
+  }
+  .page-header p { font-size: 13px; color: var(--text2); margin-top: 4px; }
+
+  .btn-accent {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--accent);
+    color: #0a0b0f;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 11px 20px;
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .btn-accent:hover { background: #ffc107; box-shadow: 0 6px 16px rgba(240,165,0,0.3); }
+
+  .btn-outline {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    color: var(--text2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 18px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 500;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 40px 20px;
+    overflow-y: auto;
+    backdrop-filter: blur(4px);
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    width: 100%;
+    max-width: 760px;
+    overflow: hidden;
+    animation: slideUp 0.25s ease;
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .modal-header {
+    padding: 28px 32px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .modal-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  .modal-close {
+    width: 36px; height: 36px;
+    border-radius: var(--radius-sm);
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    transition: all 0.15s;
+  }
+  .modal-close:hover { border-color: var(--danger); color: var(--danger); }
+
+  .modal-body { padding: 28px 32px; }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .form-grid .full { grid-column: 1 / -1; }
+
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+
+  .f-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+  }
+
+  .f-input, .f-select, .f-textarea {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 11px 14px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s;
+  }
+
+  .f-input:focus, .f-select:focus, .f-textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(240,165,0,0.08);
+  }
+
+  .f-select { appearance: none; cursor: pointer; }
+  .f-select option { background: var(--bg3); }
+
+  .f-textarea { resize: vertical; min-height: 80px; }
+
+  /* Garantia checkboxes */
+  .garantia-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .garantia-option {
+    position: relative;
+  }
+
+  .garantia-option input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .garantia-label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: var(--bg3);
+    color: var(--text2);
+  }
+
+  .garantia-option input:checked + .garantia-label {
+    border-color: var(--accent);
+    background: rgba(240,165,0,0.1);
+    color: var(--accent);
+  }
+
+  /* Image upload */
+  .img-upload {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .img-upload:hover { border-color: var(--accent); background: rgba(240,165,0,0.03); }
+  .img-upload input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .img-upload i { font-size: 28px; color: var(--text3); margin-bottom: 8px; display: block; }
+  .img-upload p { font-size: 13px; color: var(--text2); }
+  .img-upload span { font-size: 11px; color: var(--text3); }
+
+  #preview-img {
+    max-height: 80px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    display: none;
+  }
+
+  .modal-footer {
+    padding: 20px 32px 28px;
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+  }
+
+  /* ===== TABLE ===== */
+  .table-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .table-toolbar {
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+
+  .search-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 240px;
+  }
+
+  .search-wrap i {
+    position: absolute;
+    left: 14px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--text3);
+    font-size: 14px;
+  }
+
+  .search-input {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px 10px 40px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s;
+  }
+  .search-input:focus { border-color: var(--accent); }
+
+  .filter-select {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 9px 14px;
+    color: var(--text2);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    outline: none;
+    cursor: pointer;
+  }
+  .filter-select:focus { border-color: var(--accent); }
+  .filter-select option { background: var(--bg3); }
+
+  .table-wrap { overflow-x: auto; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  thead th {
+    padding: 14px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.15s;
+  }
+  thead th:hover { color: var(--text); }
+  thead th .sort-icon { margin-left: 4px; opacity: 0.4; }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--bg3); }
+
+  tbody td {
+    padding: 14px 16px;
+    color: var(--text);
+    vertical-align: middle;
+  }
+
+  .td-name { font-weight: 500; }
+  .td-sub { font-size: 11px; color: var(--text2); margin-top: 2px; }
+
+  .td-actions { display: flex; gap: 8px; }
+
+  .act-btn {
+    width: 32px; height: 32px;
+    border-radius: 6px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text2);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    transition: all 0.15s;
+  }
+  .act-btn.edit:hover { border-color: var(--info); color: var(--info); background: rgba(30,144,255,0.1); }
+  .act-btn.del:hover { border-color: var(--danger); color: var(--danger); background: rgba(255,71,87,0.1); }
+  .act-btn.view-btn:hover { border-color: var(--accent3); color: var(--accent3); background: rgba(0,212,170,0.1); }
+
+  .table-pagination {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13px;
+    color: var(--text2);
+  }
+
+  .pag-btns { display: flex; gap: 4px; }
+  .pag-btn {
+    width: 32px; height: 32px;
+    border-radius: 6px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    transition: all 0.15s;
+  }
+  .pag-btn:hover, .pag-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(240,165,0,0.1); }
+
+  /* ===== REPORTS ===== */
+  .report-filters {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+
+  .report-filters h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 16px;
+  }
+
+  .filter-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .filter-row .form-group { flex: 1; min-width: 160px; }
+
+  .report-summary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .rs-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 22px;
+    position: relative;
+    overflow: hidden;
+  }
+  .rs-card::after {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+  }
+  .rs-card.income::after { background: var(--success); }
+  .rs-card.expenses::after { background: var(--danger); }
+  .rs-card.profit::after { background: var(--accent3); }
+  .rs-card.services::after { background: var(--purple); }
+
+  .rs-label { font-size: 12px; color: var(--text2); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .rs-value {
+    font-family: 'Syne', sans-serif;
+    font-size: 24px;
+    font-weight: 800;
+  }
+  .rs-card.income .rs-value { color: var(--success); }
+  .rs-card.expenses .rs-value { color: var(--danger); }
+  .rs-card.profit .rs-value { color: var(--accent3); }
+  .rs-card.services .rs-value { color: var(--purple); }
+
+  .report-table-wrap {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .rtw-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .rtw-header h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  .btn-export {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0,212,170,0.1);
+    color: var(--accent3);
+    border: 1px solid rgba(0,212,170,0.25);
+    border-radius: var(--radius-sm);
+    padding: 8px 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-export:hover { background: rgba(0,212,170,0.2); }
+
+  /* Confirm dialog */
+  .confirm-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 600;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+  .confirm-overlay.open { display: flex; }
+
+  .confirm-box {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 36px;
+    max-width: 380px;
+    width: 90%;
+    text-align: center;
+    animation: slideUp 0.2s ease;
+  }
+
+  .confirm-icon {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: rgba(255,71,87,0.1);
+    border: 1px solid rgba(255,71,87,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    color: var(--danger);
+    margin: 0 auto 20px;
+  }
+
+  .confirm-box h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .confirm-box p { font-size: 13px; color: var(--text2); margin-bottom: 28px; }
+
+  .confirm-actions { display: flex; gap: 12px; justify-content: center; }
+
+  .btn-danger {
+    background: var(--danger);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 11px 24px;
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-danger:hover { background: #ff6b7a; }
+
+  /* Toast */
+  .toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+  }
+
+  .toast {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    min-width: 280px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    animation: toastIn 0.3s ease;
+    pointer-events: all;
+  }
+
+  @keyframes toastIn {
+    from { opacity: 0; transform: translateX(40px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .toast i { font-size: 16px; }
+  .toast.success { border-left: 3px solid var(--success); }
+  .toast.success i { color: var(--success); }
+  .toast.error { border-left: 3px solid var(--danger); }
+  .toast.error i { color: var(--danger); }
+  .toast.info { border-left: 3px solid var(--info); }
+  .toast.info i { color: var(--info); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text3); }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .dashboard-grid { grid-template-columns: 1fr; }
+    .report-summary { grid-template-columns: repeat(2, 1fr); }
+    .form-grid { grid-template-columns: 1fr; }
+    .form-grid .full { grid-column: 1; }
+    .login-brand { display: none; }
+    .login-grid { grid-template-columns: 1fr; max-width: 480px; }
+  }
+
+  @media (max-width: 640px) {
+    .stats-grid { grid-template-columns: 1fr; }
+    .report-summary { grid-template-columns: 1fr; }
+    .sidebar { transform: translateX(-100%); transition: transform 0.3s; }
+    .sidebar.open { transform: translateX(0); }
+    .main { margin-left: 0; }
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 24px;
+    color: var(--text3);
+  }
+  .empty-state i { font-size: 40px; margin-bottom: 12px; display: block; }
+  .empty-state p { font-size: 14px; }
+
+  .modal-section-label {
+    font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;
+    color:var(--accent);margin-bottom:12px;margin-top:4px;
+    display:flex;align-items:center;gap:7px;
+    padding-bottom:8px;border-bottom:1px solid var(--border);
+  }
+
+  .text-right { text-align: right; }
+  .font-mono { font-family: monospace; }
+  .text-accent { color: var(--accent); }
+  .text-success { color: var(--success); }
+  .text-danger { color: var(--danger); }
+  .text-muted { color: var(--text2); }
+  .fw-bold { font-weight: 600; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-grid">
+    <div class="login-brand">
+      <div class="brand-logo">Tech<span>Service</span></div>
+      <div class="brand-tagline">Sistema integral de gestión para tu taller de reparaciones y servicios técnicos.</div>
+      <div class="brand-stats">
+        <div class="brand-stat">
+          <div class="brand-stat-num">CRM</div>
+          <div class="brand-stat-label">Clientes</div>
+        </div>
+        <div class="brand-stat">
+          <div class="brand-stat-num">POS</div>
+          <div class="brand-stat-label">Ventas</div>
+        </div>
+        <div class="brand-stat">
+          <div class="brand-stat-num">∞</div>
+          <div class="brand-stat-label">Servicios</div>
+        </div>
+      </div>
+    </div>
+    <div class="login-form-area">
+      <h2>Iniciar Sesión</h2>
+      <p>Accede al panel de administración</p>
+      <div class="form-group">
+        <label class="form-label">Usuario</label>
+        <div class="input-wrap">
+          <i class="fa-solid fa-user icon-left"></i>
+          <input type="text" id="inp-user" class="form-input" placeholder="admin" autocomplete="username">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Contraseña</label>
+        <div class="input-wrap">
+          <i class="fa-solid fa-lock icon-left"></i>
+          <input type="password" id="inp-pass" class="form-input" placeholder="••••••••" autocomplete="current-password">
+          <button class="toggle-pass" onclick="togglePass()" id="pass-eye" type="button">
+            <i class="fa-solid fa-eye" id="eye-icon"></i>
+          </button>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="doLogin()">
+        <i class="fa-solid fa-arrow-right-to-bracket"></i> Entrar al sistema
+      </button>
+      <p class="login-hint">Demo: usuario <strong>admin</strong> / contraseña <strong>1234</strong></p>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="brand">Tech<span>Service</span></div>
+      <div class="sub">Admin Panel</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Principal</div>
+      <div class="nav-item active" onclick="goTo('dashboard', this)">
+        <i class="fa-solid fa-chart-pie"></i> Dashboard
+      </div>
+
+      <div class="nav-section-label">Gestión</div>
+      <div class="nav-item" onclick="goTo('services', this)">
+        <i class="fa-solid fa-screwdriver-wrench"></i> Servicios
+        <span class="badge" id="badge-services">0</span>
+      </div>
+      <div class="nav-item" onclick="goTo('reports', this)">
+        <i class="fa-solid fa-chart-bar"></i> Reportes
+      </div>
+
+      <div class="nav-section-label">Sistema</div>
+      <div class="nav-item" onclick="showToast('Configuración próximamente', 'info')">
+        <i class="fa-solid fa-gear"></i> Configuración
+      </div>
+      <div class="nav-item" onclick="showToast('Soporte técnico disponible', 'info')">
+        <i class="fa-solid fa-circle-question"></i> Ayuda
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info" onclick="goTo('profile', document.querySelector('[onclick*=profile]'))" style="cursor:pointer;border-radius:var(--radius-sm);transition:background 0.15s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='transparent'">
+        <div class="user-avatar" id="user-av">A</div>
+        <div style="flex:1;">
+          <div class="user-name" id="user-name-display">Administrador</div>
+          <div class="user-role">Super Admin</div>
+        </div>
+        <i class="fa-solid fa-chevron-right" style="font-size:11px;color:var(--text3);"></i>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">
+        <i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <header class="topbar">
+      <div class="topbar-title" id="topbar-title">Dashboard</div>
+      <div class="topbar-actions">
+        <div class="icon-btn notif-dot" onclick="showToast('Sin notificaciones nuevas', 'info')">
+          <i class="fa-solid fa-bell"></i>
+        </div>
+        <div class="icon-btn" onclick="showToast('Búsqueda global próximamente', 'info')">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </div>
+        <div class="user-avatar" style="width:38px;height:38px;font-size:13px;border-radius:8px;cursor:pointer;border:2px solid transparent;transition:border-color 0.15s;" id="topbar-av" onclick="goTo('profile', document.querySelector('[onclick*=profile]'))" title="Mi perfil" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='transparent'">A</div>
+      </div>
+    </header>
+
+    <!-- DASHBOARD -->
+    <section class="page active" id="page-dashboard">
+      <div class="stats-grid">
+        <div class="stat-card orange">
+          <div class="stat-icon orange"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+          <div class="stat-value" id="dash-total">0</div>
+          <div class="stat-label">Servicios totales</div>
+          <div class="stat-change up"><i class="fa-solid fa-arrow-trend-up"></i> Este mes</div>
+        </div>
+        <div class="stat-card teal">
+          <div class="stat-icon teal"><i class="fa-solid fa-peso-sign"></i></div>
+          <div class="stat-value" id="dash-ingresos">$0</div>
+          <div class="stat-label">Ingresos totales</div>
+          <div class="stat-change up"><i class="fa-solid fa-arrow-trend-up"></i> Acumulado</div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-icon red"><i class="fa-solid fa-clock"></i></div>
+          <div class="stat-value" id="dash-pending">0</div>
+          <div class="stat-label">En proceso</div>
+          <div class="stat-change down"><i class="fa-solid fa-circle-exclamation"></i> Pendientes</div>
+        </div>
+        <div class="stat-card purple">
+          <div class="stat-icon purple"><i class="fa-solid fa-circle-check"></i></div>
+          <div class="stat-value" id="dash-done">0</div>
+          <div class="stat-label">Completados</div>
+          <div class="stat-change up"><i class="fa-solid fa-arrow-trend-up"></i> Entregados</div>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <div class="widget">
+          <div class="widget-header">
+            <div class="widget-title">Servicios por mes</div>
+            <span class="widget-badge wb-orange">2025</span>
+          </div>
+          <div class="chart-area">
+            <div class="bar-chart" id="bar-chart">
+              <!-- generated by JS -->
+            </div>
+          </div>
+        </div>
+        <div class="widget">
+          <div class="widget-header">
+            <div class="widget-title">Estado de servicios</div>
+            <span class="widget-badge wb-teal">Live</span>
+          </div>
+          <div class="donut-wrap" id="donut-wrap">
+            <!-- generated by JS -->
+          </div>
+        </div>
+      </div>
+
+      <div class="widget">
+        <div class="widget-header" style="padding-bottom:0;">
+          <div class="widget-title">Servicios recientes</div>
+          <button class="btn-outline" style="font-size:12px;padding:7px 14px;" onclick="goTo('services', document.querySelector('[onclick*=services]'))">Ver todos</button>
+        </div>
+        <div class="recent-list" id="recent-list">
+          <div class="empty-state"><i class="fa-solid fa-inbox"></i><p>Sin servicios registrados</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SERVICES -->
+    <section class="page" id="page-services">
+      <div class="page-header">
+        <div>
+          <h1>Módulo de Servicios</h1>
+          <p>Gestiona todos los servicios y reparaciones del taller</p>
+        </div>
+        <button class="btn-accent" onclick="openModal()" style="font-size:15px;padding:13px 28px;box-shadow:0 6px 24px rgba(240,165,0,0.35);">
+          <i class="fa-solid fa-plus"></i> Nuevo servicio
+        </button>
+      </div>
+
+      <!-- ===== TABLE ===== -->
+      <div class="table-card">
+        <div class="table-toolbar">
+          <div class="search-wrap">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" class="search-input" id="search-input" placeholder="Buscar por nombre, modelo, folio, falla..." oninput="filterTable()">
+          </div>
+          <select class="filter-select" id="filter-estado" onchange="filterTable()">
+            <option value="">Todos los estados</option>
+            <option value="Recibido">Recibido</option>
+            <option value="Diagnóstico">Diagnóstico</option>
+            <option value="En proceso">En proceso</option>
+            <option value="Esperando refacción">Esperando refacción</option>
+            <option value="Listo">Listo</option>
+            <option value="Entregado">Entregado</option>
+            <option value="Cancelado">Cancelado</option>
+          </select>
+          <select class="filter-select" id="filter-garantia" onchange="filterTable()">
+            <option value="">Toda garantía</option>
+            <option value="Sin garantía">Sin garantía</option>
+            <option value="7 días">7 días</option>
+            <option value="15 días">15 días</option>
+            <option value="30 días">30 días</option>
+          </select>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th onclick="sortTable('folio')">Folio <span class="sort-icon">↕</span></th>
+                <th onclick="sortTable('nombre')">Cliente / Equipo <span class="sort-icon">↕</span></th>
+                <th onclick="sortTable('modelo')">Modelo <span class="sort-icon">↕</span></th>
+                <th onclick="sortTable('falla')">Falla <span class="sort-icon">↕</span></th>
+                <th onclick="sortTable('estado')">Estado <span class="sort-icon">↕</span></th>
+                <th onclick="sortTable('garantia')">Garantía <span class="sort-icon">↕</span></th>
+                <th onclick="sortTable('fecha_entrada')">F. Entrada <span class="sort-icon">↕</span></th>
+                <th onclick="sortTable('costo_total')">Total <span class="sort-icon">↕</span></th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="services-tbody">
+              <tr><td colspan="9"><div class="empty-state"><i class="fa-solid fa-inbox"></i><p>Sin servicios. Haz clic en "+ Nuevo servicio" para comenzar</p></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="table-pagination">
+          <span id="table-info">0 registros</span>
+          <div class="pag-btns" id="pag-btns"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- REPORTS -->
+    <section class="page" id="page-reports">
+      <div class="page-header">
+        <div>
+          <h1>Módulo de Reportes</h1>
+          <p>Análisis financiero y operativo por período</p>
+        </div>
+        <button class="btn-export" onclick="exportCSV()">
+          <i class="fa-solid fa-file-csv"></i> Exportar CSV
+        </button>
+      </div>
+
+      <div class="report-filters">
+        <h3><i class="fa-solid fa-filter" style="margin-right:8px;color:var(--accent)"></i>Filtros de período</h3>
+        <div class="filter-row">
+          <div class="form-group">
+            <label class="f-label">Fecha inicio</label>
+            <input type="date" class="f-input" id="rep-start">
+          </div>
+          <div class="form-group">
+            <label class="f-label">Fecha fin</label>
+            <input type="date" class="f-input" id="rep-end">
+          </div>
+          <div class="form-group">
+            <label class="f-label">Estado</label>
+            <select class="f-select" id="rep-estado">
+              <option value="">Todos</option>
+              <option value="Recibido">Recibido</option>
+              <option value="Diagnóstico">Diagnóstico</option>
+              <option value="En proceso">En proceso</option>
+              <option value="Listo">Listo</option>
+              <option value="Entregado">Entregado</option>
+              <option value="Cancelado">Cancelado</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex:none;">
+            <label class="f-label">&nbsp;</label>
+            <button class="btn-accent" onclick="generateReport()">
+              <i class="fa-solid fa-chart-line"></i> Generar reporte
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="report-summary">
+        <div class="rs-card income">
+          <div class="rs-label">Ingresos totales</div>
+          <div class="rs-value" id="rs-income">$0</div>
+        </div>
+        <div class="rs-card expenses">
+          <div class="rs-label">Costo refacciones</div>
+          <div class="rs-value" id="rs-expenses">$0</div>
+        </div>
+        <div class="rs-card profit">
+          <div class="rs-label">Utilidad neta</div>
+          <div class="rs-value" id="rs-profit">$0</div>
+        </div>
+        <div class="rs-card services">
+          <div class="rs-label">Servicios en período</div>
+          <div class="rs-value" id="rs-count">0</div>
+        </div>
+      </div>
+
+      <div class="report-table-wrap">
+        <div class="rtw-header">
+          <h3>Detalle de servicios</h3>
+          <span class="text-muted" style="font-size:13px;" id="rep-range-label"></span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Folio</th>
+                <th>Cliente</th>
+                <th>Equipo / Modelo</th>
+                <th>Estado</th>
+                <th>F. Entrada</th>
+                <th>F. Salida</th>
+                <th class="text-right">Anticipo</th>
+                <th class="text-right">Costo Ref.</th>
+                <th class="text-right">Total</th>
+                <th class="text-right">Utilidad</th>
+              </tr>
+            </thead>
+            <tbody id="report-tbody">
+              <tr><td colspan="10"><div class="empty-state"><i class="fa-solid fa-chart-bar"></i><p>Genera un reporte para ver los datos</p></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    <!-- PROFILE -->
+    <section class="page" id="page-profile">
+      <div class="page-header">
+        <div>
+          <h1>Mi Perfil</h1>
+          <p>Administra tu información personal y seguridad de cuenta</p>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:300px 1fr;gap:24px;align-items:start;">
+
+        <!-- Left: Avatar card -->
+        <div>
+          <div class="widget" style="padding:32px 24px;text-align:center;">
+            <div style="position:relative;display:inline-block;margin-bottom:20px;">
+              <div id="profile-avatar-display" style="width:100px;height:100px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:36px;color:#0a0b0f;margin:0 auto;overflow:hidden;border:3px solid rgba(240,165,0,0.3);">A</div>
+              <label for="profile-photo-input" style="position:absolute;bottom:2px;right:2px;width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid var(--bg2);font-size:12px;color:#0a0b0f;">
+                <i class="fa-solid fa-camera"></i>
+              </label>
+              <input type="file" id="profile-photo-input" accept="image/*" style="display:none" onchange="updateProfilePhoto(this)">
+            </div>
+            <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;" id="profile-display-name">Administrador</div>
+            <div style="font-size:13px;color:var(--text2);margin-top:4px;" id="profile-display-role">Super Admin</div>
+            <div style="font-size:12px;color:var(--text3);margin-top:2px;" id="profile-display-empresa">—</div>
+
+            <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:12px;text-align:left;">
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;">
+                <i class="fa-solid fa-envelope" style="width:16px;color:var(--text3);"></i>
+                <span id="profile-display-correo" style="color:var(--text2);">—</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;">
+                <i class="fa-solid fa-phone" style="width:16px;color:var(--text3);"></i>
+                <span id="profile-display-tel" style="color:var(--text2);">—</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;">
+                <i class="fa-solid fa-store" style="width:16px;color:var(--text3);"></i>
+                <span id="profile-display-local" style="color:var(--text2);">—</span>
+              </div>
+            </div>
+
+            <div style="margin-top:20px;padding:10px 14px;background:rgba(46,213,115,0.08);border:1px solid rgba(46,213,115,0.2);border-radius:8px;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--success);">
+              <i class="fa-solid fa-circle-check"></i> Cuenta activa
+            </div>
+          </div>
+
+          <!-- Stats card -->
+          <div class="widget" style="margin-top:16px;padding:20px 22px;">
+            <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:16px;">Actividad del sistema</div>
+            <div style="display:flex;flex-direction:column;gap:14px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;">
+                <span style="color:var(--text2);">Servicios registrados</span>
+                <span style="font-family:'Syne',sans-serif;font-weight:700;color:var(--accent);" id="prof-stat-services">0</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;">
+                <span style="color:var(--text2);">Ingresos totales</span>
+                <span style="font-family:'Syne',sans-serif;font-weight:700;color:var(--accent3);" id="prof-stat-ingresos">$0</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;">
+                <span style="color:var(--text2);">Entregados</span>
+                <span style="font-family:'Syne',sans-serif;font-weight:700;color:var(--success);" id="prof-stat-done">0</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;">
+                <span style="color:var(--text2);">En proceso</span>
+                <span style="font-family:'Syne',sans-serif;font-weight:700;color:var(--info);" id="prof-stat-pending">0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Forms -->
+        <div style="display:flex;flex-direction:column;gap:20px;">
+
+          <!-- Datos generales -->
+          <div class="widget">
+            <div style="padding:22px 26px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;">
+              <div style="width:34px;height:34px;border-radius:8px;background:rgba(240,165,0,0.12);display:flex;align-items:center;justify-content:center;color:var(--accent);">
+                <i class="fa-solid fa-user-pen"></i>
+              </div>
+              <div>
+                <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;">Datos personales</div>
+                <div style="font-size:12px;color:var(--text2);">Tu información de perfil visible en el sistema</div>
+              </div>
+            </div>
+            <div style="padding:24px 26px;">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="f-label">Nombre completo</label>
+                  <input type="text" class="f-input" id="prof-nombre" placeholder="Ej. Juan Pérez">
+                </div>
+                <div class="form-group">
+                  <label class="f-label">Correo electrónico</label>
+                  <input type="email" class="f-input" id="prof-correo" placeholder="correo@empresa.com">
+                </div>
+                <div class="form-group">
+                  <label class="f-label">Teléfono</label>
+                  <input type="tel" class="f-input" id="prof-telefono" placeholder="33 1234 5678">
+                </div>
+                <div class="form-group">
+                  <label class="f-label">Nombre del local / sucursal</label>
+                  <input type="text" class="f-input" id="prof-local" placeholder="Ej. Sucursal Centro">
+                </div>
+                <div class="form-group full">
+                  <label class="f-label">Empresa</label>
+                  <input type="text" class="f-input" id="prof-empresa" placeholder="Ej. TechService Reparaciones S.A.">
+                </div>
+              </div>
+            </div>
+            <div style="padding:14px 26px 22px;display:flex;justify-content:flex-end;">
+              <button class="btn-accent" onclick="saveProfile()">
+                <i class="fa-solid fa-floppy-disk"></i> Guardar datos
+              </button>
+            </div>
+          </div>
+
+          <!-- Cambiar contraseña -->
+          <div class="widget">
+            <div style="padding:22px 26px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;">
+              <div style="width:34px;height:34px;border-radius:8px;background:rgba(255,71,87,0.1);display:flex;align-items:center;justify-content:center;color:var(--danger);">
+                <i class="fa-solid fa-lock"></i>
+              </div>
+              <div>
+                <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;">Cambiar contraseña</div>
+                <div style="font-size:12px;color:var(--text2);">Actualiza tu contraseña de acceso al sistema</div>
+              </div>
+            </div>
+            <div style="padding:24px 26px;">
+              <div style="display:flex;flex-direction:column;gap:18px;">
+                <div class="form-group">
+                  <label class="f-label">Contraseña actual</label>
+                  <div class="input-wrap">
+                    <i class="fa-solid fa-lock icon-left"></i>
+                    <input type="password" class="form-input" id="prof-pass-actual" placeholder="••••••••" style="background:var(--bg3);border-color:var(--border);">
+                    <button class="toggle-pass" type="button" onclick="toggleFieldPass('prof-pass-actual', 'eye-actual')">
+                      <i class="fa-solid fa-eye" id="eye-actual"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="f-label">Nueva contraseña</label>
+                  <div class="input-wrap">
+                    <i class="fa-solid fa-key icon-left"></i>
+                    <input type="password" class="form-input" id="prof-pass-nueva" placeholder="Mínimo 4 caracteres" style="background:var(--bg3);border-color:var(--border);" oninput="checkPassStrength(this.value)">
+                    <button class="toggle-pass" type="button" onclick="toggleFieldPass('prof-pass-nueva', 'eye-nueva')">
+                      <i class="fa-solid fa-eye" id="eye-nueva"></i>
+                    </button>
+                  </div>
+                  <!-- Indicador de fortaleza -->
+                  <div id="pass-strength-bar" style="display:none;margin-top:8px;">
+                    <div style="display:flex;gap:4px;margin-bottom:4px;">
+                      <div id="ps1" style="flex:1;height:3px;border-radius:2px;background:var(--border);transition:background 0.2s;"></div>
+                      <div id="ps2" style="flex:1;height:3px;border-radius:2px;background:var(--border);transition:background 0.2s;"></div>
+                      <div id="ps3" style="flex:1;height:3px;border-radius:2px;background:var(--border);transition:background 0.2s;"></div>
+                      <div id="ps4" style="flex:1;height:3px;border-radius:2px;background:var(--border);transition:background 0.2s;"></div>
+                    </div>
+                    <div id="ps-label" style="font-size:11px;color:var(--text3);"></div>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="f-label">Confirmar nueva contraseña</label>
+                  <div class="input-wrap">
+                    <i class="fa-solid fa-key icon-left"></i>
+                    <input type="password" class="form-input" id="prof-pass-confirm" placeholder="Repite la nueva contraseña" style="background:var(--bg3);border-color:var(--border);">
+                    <button class="toggle-pass" type="button" onclick="toggleFieldPass('prof-pass-confirm', 'eye-confirm')">
+                      <i class="fa-solid fa-eye" id="eye-confirm"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="padding:14px 26px 22px;display:flex;justify-content:flex-end;gap:12px;">
+              <button class="btn-outline" onclick="clearPassFields()">
+                <i class="fa-solid fa-rotate-left"></i> Limpiar
+              </button>
+              <button class="btn-danger" onclick="changePassword()" style="display:inline-flex;align-items:center;gap:8px;">
+                <i class="fa-solid fa-shield-halved"></i> Actualizar contraseña
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- SERVICE MODAL -->
+<div class="modal-overlay" id="service-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="width:38px;height:38px;border-radius:10px;background:rgba(240,165,0,0.15);display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:17px;">
+          <i class="fa-solid fa-screwdriver-wrench"></i>
+        </div>
+        <div>
+          <div class="modal-title" id="modal-title">Nuevo Servicio</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:1px;">Completa los campos del servicio</div>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Foto -->
+      <div style="margin-bottom:20px;">
+        <label class="f-label" style="display:block;margin-bottom:8px;">Foto / Imagen del equipo</label>
+        <div class="img-upload" onclick="document.getElementById('img-input').click()">
+          <input type="file" id="img-input" accept="image/*" onchange="previewImg(this)" style="display:none">
+          <img id="preview-img" src="" alt="">
+          <i class="fa-solid fa-camera-retro" id="upload-icon"></i>
+          <p id="upload-text">Haz clic para subir una imagen</p>
+          <span>JPG, PNG, WEBP — máx. 5MB</span>
+        </div>
+      </div>
+
+      <!-- Cliente -->
+      <div class="modal-section-label"><i class="fa-solid fa-user"></i> Datos del Cliente</div>
+      <div class="form-grid" style="margin-bottom:20px;">
+        <div class="form-group">
+          <label class="f-label">Nombre del cliente *</label>
+          <input type="text" class="f-input" id="f-nombre" placeholder="Ej. Juan Pérez">
+        </div>
+        <div class="form-group">
+          <label class="f-label">Teléfono</label>
+          <input type="tel" class="f-input" id="f-telefono" placeholder="33 1234 5678">
+        </div>
+        <div class="form-group">
+          <label class="f-label">Correo electrónico</label>
+          <input type="email" class="f-input" id="f-correo" placeholder="cliente@email.com">
+        </div>
+        <div class="form-group">
+          <label class="f-label">Dirección</label>
+          <input type="text" class="f-input" id="f-direccion" placeholder="Calle, Número, Colonia">
+        </div>
+      </div>
+
+      <!-- Equipo -->
+      <div class="modal-section-label"><i class="fa-solid fa-mobile-screen-button"></i> Datos del Equipo</div>
+      <div class="form-grid" style="margin-bottom:20px;">
+        <div class="form-group">
+          <label class="f-label">Modelo del equipo *</label>
+          <input type="text" class="f-input" id="f-modelo" placeholder="Ej. iPhone 14 Pro, Dell XPS 15">
+        </div>
+        <div class="form-group">
+          <label class="f-label">Número de serie</label>
+          <input type="text" class="f-input" id="f-serie" placeholder="SN00000000">
+        </div>
+        <div class="form-group">
+          <label class="f-label">Falla reportada *</label>
+          <input type="text" class="f-input" id="f-falla" placeholder="Ej. No enciende, pantalla rota">
+        </div>
+        <div class="form-group">
+          <label class="f-label">Estado del servicio</label>
+          <select class="f-select" id="f-estado">
+            <option value="Recibido">Recibido</option>
+            <option value="Diagnóstico">Diagnóstico</option>
+            <option value="En proceso">En proceso</option>
+            <option value="Esperando refacción">Esperando refacción</option>
+            <option value="Listo">Listo</option>
+            <option value="Entregado">Entregado</option>
+            <option value="Cancelado">Cancelado</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label class="f-label">Descripción del servicio</label>
+          <textarea class="f-textarea" id="f-descripcion" placeholder="Describe el equipo y el servicio a realizar..."></textarea>
+        </div>
+        <div class="form-group full">
+          <label class="f-label">Observaciones</label>
+          <textarea class="f-textarea" id="f-observaciones" placeholder="Notas internas, accesorios incluidos, condición del equipo..."></textarea>
+        </div>
+      </div>
+
+      <!-- Garantía -->
+      <div class="modal-section-label"><i class="fa-solid fa-shield-halved"></i> Garantía</div>
+      <div style="margin-bottom:20px;">
+        <div class="garantia-group">
+          <div class="garantia-option">
+            <input type="radio" name="garantia" id="g0" value="Sin garantía" checked>
+            <label class="garantia-label" for="g0"><i class="fa-solid fa-ban"></i> Sin garantía</label>
+          </div>
+          <div class="garantia-option">
+            <input type="radio" name="garantia" id="g7" value="7 días">
+            <label class="garantia-label" for="g7"><i class="fa-solid fa-shield-halved"></i> 7 días</label>
+          </div>
+          <div class="garantia-option">
+            <input type="radio" name="garantia" id="g15" value="15 días">
+            <label class="garantia-label" for="g15"><i class="fa-solid fa-shield-halved"></i> 15 días</label>
+          </div>
+          <div class="garantia-option">
+            <input type="radio" name="garantia" id="g30" value="30 días">
+            <label class="garantia-label" for="g30"><i class="fa-solid fa-shield"></i> 30 días</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fechas y Costos -->
+      <div class="modal-section-label"><i class="fa-solid fa-calendar-days"></i> Fechas y Costos</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="f-label">Fecha de entrada</label>
+          <input type="date" class="f-input" id="f-fecha-entrada">
+        </div>
+        <div class="form-group">
+          <label class="f-label">Fecha de salida</label>
+          <input type="date" class="f-input" id="f-fecha-salida">
+        </div>
+        <div class="form-group">
+          <label class="f-label">Anticipo / Pago parcial ($)</label>
+          <input type="number" class="f-input" id="f-anticipo" placeholder="0.00" min="0" step="0.01">
+        </div>
+        <div class="form-group">
+          <label class="f-label">Costo de refacción ($)</label>
+          <input type="number" class="f-input" id="f-costo-refaccion" placeholder="0.00" min="0" step="0.01">
+        </div>
+        <div class="form-group full">
+          <label class="f-label">Costo total del servicio ($)</label>
+          <input type="number" class="f-input" id="f-costo-total" placeholder="0.00" min="0" step="0.01" style="border-color:rgba(240,165,0,0.3);font-size:16px;padding:13px 14px;">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeModal()"><i class="fa-solid fa-xmark"></i> Cancelar</button>
+      <button class="btn-accent" onclick="saveService()" style="font-size:15px;padding:13px 28px;">
+        <i class="fa-solid fa-floppy-disk"></i> <span id="btn-save-label">Guardar servicio</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM -->
+<div class="confirm-overlay" id="confirm-overlay">
+  <div class="confirm-box">
+    <div class="confirm-icon"><i class="fa-solid fa-trash-can"></i></div>
+    <h3>¿Eliminar registro?</h3>
+    <p>Esta acción no se puede deshacer. El servicio será eliminado permanentemente.</p>
+    <div class="confirm-actions">
+      <button class="btn-outline" onclick="closeConfirm()">Cancelar</button>
+      <button class="btn-danger" onclick="confirmDelete()">Sí, eliminar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOASTS -->
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+// ===== DATA =====
+let services = JSON.parse(localStorage.getItem('ts_services') || '[]');
+let editingId = null;
+let deleteId = null;
+let sortCol = 'folio';
+let sortAsc = true;
+let currentPage = 1;
+const PER_PAGE = 10;
+let currentUser = '';
+
+function save() {
+  localStorage.setItem('ts_services', JSON.stringify(services));
+}
+
+function genFolio() {
+  return 'SV-' + String(services.length + 1).padStart(4, '0');
+}
+
+// ===== LOGIN =====
+function togglePass() {
+  const inp = document.getElementById('inp-pass');
+  const icon = document.getElementById('eye-icon');
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    icon.className = 'fa-solid fa-eye-slash';
+  } else {
+    inp.type = 'password';
+    icon.className = 'fa-solid fa-eye';
+  }
+}
+
+function doLogin() {
+  const user = document.getElementById('inp-user').value.trim();
+  const pass = document.getElementById('inp-pass').value;
+  if (user === 'admin' && pass === userPassword) {
+    currentUser = user;
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    loadProfile();
+    refreshDashboard();
+    showToast('¡Bienvenido, ' + (userProfile.nombre || 'Admin') + '!', 'success');
+  } else {
+    showToast('Usuario o contraseña incorrectos', 'error');
+  }
+}
+
+document.getElementById('inp-pass').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+document.getElementById('inp-user').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('inp-pass').focus();
+});
+
+function doLogout() {
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('inp-user').value = '';
+  document.getElementById('inp-pass').value = '';
+  showToast('Sesión cerrada', 'info');
+}
+
+// ===== NAVIGATION =====
+function goTo(page, el) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  // Find the nav item for this page if not passed
+  if (!el) {
+    el = document.querySelector(`.nav-item[onclick*="${page}"]`);
+  }
+  if (el) el.classList.add('active');
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  const titles = { dashboard: 'Dashboard', services: 'Módulo de Servicios', reports: 'Módulo de Reportes', profile: 'Mi Perfil' };
+  document.getElementById('topbar-title').textContent = titles[page] || page;
+  if (page === 'dashboard') refreshDashboard();
+  if (page === 'services') renderTable();
+  if (page === 'reports') generateReport();
+  if (page === 'profile') { loadProfile(); }
+}
+
+// ===== MODAL =====
+function openModal(id = null) {
+  editingId = id;
+  const isEdit = id !== null;
+  document.getElementById('modal-title').textContent = isEdit ? 'Editar Servicio' : 'Nuevo Servicio';
+  document.getElementById('btn-save-label').textContent = isEdit ? 'Actualizar servicio' : 'Guardar servicio';
+  resetForm();
+  if (isEdit) {
+    const s = services.find(x => x.id === id);
+    if (s) fillForm(s);
+  } else {
+    document.getElementById('f-fecha-entrada').value = new Date().toISOString().split('T')[0];
+  }
+  document.getElementById('service-modal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('service-modal').classList.remove('open');
+  editingId = null;
+}
+
+function resetForm() {
+  ['f-nombre','f-telefono','f-correo','f-direccion','f-modelo','f-serie',
+   'f-falla','f-descripcion','f-observaciones','f-fecha-entrada','f-fecha-salida',
+   'f-anticipo','f-costo-refaccion','f-costo-total'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('f-estado').value = 'Recibido';
+  document.getElementById('g0').checked = true;
+  document.getElementById('preview-img').style.display = 'none';
+  document.getElementById('upload-icon').style.display = 'block';
+  document.getElementById('upload-text').textContent = 'Haz clic para subir una imagen';
+  document.getElementById('img-input').value = '';
+}
+
+function fillForm(s) {
+  document.getElementById('f-nombre').value = s.nombre || '';
+  document.getElementById('f-telefono').value = s.telefono || '';
+  document.getElementById('f-correo').value = s.correo || '';
+  document.getElementById('f-direccion').value = s.direccion || '';
+  document.getElementById('f-modelo').value = s.modelo || '';
+  document.getElementById('f-serie').value = s.serie || '';
+  document.getElementById('f-falla').value = s.falla || '';
+  document.getElementById('f-descripcion').value = s.descripcion || '';
+  document.getElementById('f-observaciones').value = s.observaciones || '';
+  document.getElementById('f-estado').value = s.estado || 'Recibido';
+  document.getElementById('f-fecha-entrada').value = s.fecha_entrada || '';
+  document.getElementById('f-fecha-salida').value = s.fecha_salida || '';
+  document.getElementById('f-anticipo').value = s.anticipo || '';
+  document.getElementById('f-costo-refaccion').value = s.costo_refaccion || '';
+  document.getElementById('f-costo-total').value = s.costo_total || '';
+  const gVal = s.garantia || 'Sin garantía';
+  document.querySelectorAll('input[name="garantia"]').forEach(r => {
+    r.checked = r.value === gVal;
+  });
+  if (s.foto) {
+    document.getElementById('preview-img').src = s.foto;
+    document.getElementById('preview-img').style.display = 'block';
+    document.getElementById('upload-icon').style.display = 'none';
+    document.getElementById('upload-text').textContent = 'Imagen adjunta';
+  }
+}
+
+function previewImg(input) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      document.getElementById('preview-img').src = e.target.result;
+      document.getElementById('preview-img').style.display = 'block';
+      document.getElementById('upload-icon').style.display = 'none';
+      document.getElementById('upload-text').textContent = input.files[0].name;
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+function saveService() {
+  const nombre = document.getElementById('f-nombre').value.trim();
+  const modelo = document.getElementById('f-modelo').value.trim();
+  const falla = document.getElementById('f-falla').value.trim();
+  if (!nombre || !modelo || !falla) {
+    showToast('Completa los campos obligatorios (*)', 'error');
+    return;
+  }
+  const garantia = document.querySelector('input[name="garantia"]:checked')?.value || 'Sin garantía';
+  const foto = document.getElementById('preview-img').src && document.getElementById('preview-img').style.display !== 'none'
+    ? document.getElementById('preview-img').src : '';
+  const data = {
+    nombre, modelo, falla, garantia, foto,
+    telefono: document.getElementById('f-telefono').value,
+    correo: document.getElementById('f-correo').value,
+    direccion: document.getElementById('f-direccion').value,
+    serie: document.getElementById('f-serie').value,
+    descripcion: document.getElementById('f-descripcion').value,
+    observaciones: document.getElementById('f-observaciones').value,
+    estado: document.getElementById('f-estado').value,
+    fecha_entrada: document.getElementById('f-fecha-entrada').value,
+    fecha_salida: document.getElementById('f-fecha-salida').value,
+    anticipo: parseFloat(document.getElementById('f-anticipo').value) || 0,
+    costo_refaccion: parseFloat(document.getElementById('f-costo-refaccion').value) || 0,
+    costo_total: parseFloat(document.getElementById('f-costo-total').value) || 0,
+  };
+
+  if (editingId !== null) {
+    const idx = services.findIndex(x => x.id === editingId);
+    if (idx > -1) services[idx] = { ...services[idx], ...data };
+    showToast('Servicio actualizado correctamente', 'success');
+  } else {
+    data.id = Date.now();
+    data.folio = genFolio();
+    data.created = new Date().toISOString();
+    services.push(data);
+    showToast('Servicio registrado correctamente', 'success');
+  }
+  save();
+  closeModal();
+  renderTable();
+  updateBadge();
+  refreshDashboard();
+}
+
+// ===== TABLE =====
+function getFiltered() {
+  const q = document.getElementById('search-input').value.toLowerCase();
+  const estado = document.getElementById('filter-estado').value;
+  const garantia = document.getElementById('filter-garantia').value;
+  return services.filter(s => {
+    const matchQ = !q || [s.folio,s.nombre,s.modelo,s.falla,s.telefono,s.correo,s.estado,s.serie]
+      .some(v => (v||'').toLowerCase().includes(q));
+    const matchE = !estado || s.estado === estado;
+    const matchG = !garantia || s.garantia === garantia;
+    return matchQ && matchE && matchG;
+  });
+}
+
+function filterTable() {
+  currentPage = 1;
+  renderTable();
+}
+
+function sortTable(col) {
+  if (sortCol === col) sortAsc = !sortAsc;
+  else { sortCol = col; sortAsc = true; }
+  renderTable();
+}
+
+const estadoClass = {
+  'Recibido': 'sp-pending',
+  'Diagnóstico': 'sp-progress',
+  'En proceso': 'sp-progress',
+  'Esperando refacción': 'sp-pending',
+  'Listo': 'sp-done',
+  'Entregado': 'sp-delivered',
+  'Cancelado': 'sp-cancelled'
+};
+
+function renderTable() {
+  let data = getFiltered();
+  data.sort((a, b) => {
+    let va = a[sortCol] ?? '';
+    let vb = b[sortCol] ?? '';
+    if (typeof va === 'number') return sortAsc ? va - vb : vb - va;
+    return sortAsc ? String(va).localeCompare(String(vb)) : String(vb).localeCompare(String(va));
+  });
+
+  const total = data.length;
+  const pages = Math.ceil(total / PER_PAGE) || 1;
+  if (currentPage > pages) currentPage = pages;
+  const start = (currentPage - 1) * PER_PAGE;
+  const paged = data.slice(start, start + PER_PAGE);
+
+  document.getElementById('table-info').textContent = `${total} registro${total !== 1 ? 's' : ''}`;
+
+  const tbody = document.getElementById('services-tbody');
+  if (paged.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><i class="fa-solid fa-inbox"></i><p>Sin resultados</p></div></td></tr>`;
+  } else {
+    tbody.innerHTML = paged.map(s => `
+      <tr>
+        <td><span class="text-accent fw-bold">${s.folio||'-'}</span></td>
+        <td>
+          <div class="td-name">${s.nombre}</div>
+          <div class="td-sub">${s.telefono||''}</div>
+        </td>
+        <td>
+          <div>${s.modelo}</div>
+          <div class="td-sub">${s.serie||''}</div>
+        </td>
+        <td>${s.falla||'-'}</td>
+        <td><span class="status-pill ${estadoClass[s.estado]||'sp-pending'}">${s.estado||'-'}</span></td>
+        <td><span class="status-pill sp-progress" style="font-size:10px">${s.garantia||'-'}</span></td>
+        <td>${s.fecha_entrada||'-'}</td>
+        <td class="text-accent fw-bold">$${Number(s.costo_total||0).toLocaleString('es-MX',{minimumFractionDigits:2})}</td>
+        <td>
+          <div class="td-actions">
+            <button class="act-btn view-btn" onclick="viewDetail(${s.id})" title="Ver detalle"><i class="fa-solid fa-eye"></i></button>
+            <button class="act-btn edit" onclick="openModal(${s.id})" title="Editar"><i class="fa-solid fa-pen"></i></button>
+            <button class="act-btn del" onclick="askDelete(${s.id})" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  // Pagination
+  const pb = document.getElementById('pag-btns');
+  pb.innerHTML = '';
+  if (pages > 1) {
+    for (let i = 1; i <= pages; i++) {
+      const btn = document.createElement('button');
+      btn.className = 'pag-btn' + (i === currentPage ? ' active' : '');
+      btn.textContent = i;
+      btn.onclick = () => { currentPage = i; renderTable(); };
+      pb.appendChild(btn);
+    }
+  }
+}
+
+function viewDetail(id) {
+  const s = services.find(x => x.id === id);
+  if (!s) return;
+  showToast(`Folio: ${s.folio} — ${s.nombre} — ${s.modelo}`, 'info');
+}
+
+// Delete
+function askDelete(id) {
+  deleteId = id;
+  document.getElementById('confirm-overlay').classList.add('open');
+}
+function closeConfirm() {
+  document.getElementById('confirm-overlay').classList.remove('open');
+  deleteId = null;
+}
+function confirmDelete() {
+  services = services.filter(x => x.id !== deleteId);
+  save();
+  closeConfirm();
+  renderTable();
+  updateBadge();
+  refreshDashboard();
+  showToast('Servicio eliminado', 'error');
+}
+
+// ===== BADGE =====
+function updateBadge() {
+  document.getElementById('badge-services').textContent = services.length;
+}
+
+// ===== DASHBOARD =====
+function refreshDashboard() {
+  updateBadge();
+  document.getElementById('dash-total').textContent = services.length;
+  const ingresos = services.reduce((s, x) => s + (x.costo_total||0), 0);
+  document.getElementById('dash-ingresos').textContent = '$' + ingresos.toLocaleString('es-MX', {minimumFractionDigits:2});
+  const pending = services.filter(s => ['Recibido','Diagnóstico','En proceso','Esperando refacción'].includes(s.estado)).length;
+  const done = services.filter(s => ['Entregado'].includes(s.estado)).length;
+  document.getElementById('dash-pending').textContent = pending;
+  document.getElementById('dash-done').textContent = done;
+  renderBarChart();
+  renderDonut();
+  renderRecent();
+}
+
+function renderBarChart() {
+  const months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const counts = new Array(12).fill(0);
+  const revenue = new Array(12).fill(0);
+  services.forEach(s => {
+    if (s.fecha_entrada) {
+      const m = new Date(s.fecha_entrada).getMonth();
+      counts[m]++;
+      revenue[m] += s.costo_total || 0;
+    }
+  });
+  const maxC = Math.max(...counts, 1);
+  const el = document.getElementById('bar-chart');
+  el.innerHTML = months.map((m, i) => `
+    <div class="bar-col">
+      <div class="bar" style="height:${Math.max(4, (counts[i]/maxC)*120)}px" title="${m}: ${counts[i]} servicios / $${revenue[i].toLocaleString('es-MX')}"></div>
+      <div class="bar-label">${m}</div>
+    </div>
+  `).join('');
+}
+
+function renderDonut() {
+  const labels = ['Recibido','En proceso','Listo','Entregado','Cancelado'];
+  const colors = ['#f0a500','#1e90ff','#a855f7','#00d4aa','#ff4757'];
+  const counts = labels.map(l => services.filter(s => s.estado === l || (l === 'En proceso' && ['Diagnóstico','Esperando refacción','En proceso'].includes(s.estado))).length);
+  const total = counts.reduce((a,b) => a+b, 0) || 1;
+  
+  let offset = 0;
+  const r = 50, cx = 60, cy = 60;
+  const circumference = 2 * Math.PI * r;
+  
+  const segments = counts.map((c, i) => {
+    const pct = c / total;
+    const dash = pct * circumference;
+    const gap = circumference - dash;
+    const seg = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${colors[i]}" stroke-width="18" stroke-dasharray="${dash} ${gap}" stroke-dashoffset="${-offset * circumference}" transform="rotate(-90 ${cx} ${cy})" opacity="${c>0?0.85:0.1}"/>`;
+    offset += pct;
+    return seg;
+  });
+
+  const svg = `<svg class="donut-svg" viewBox="0 0 120 120">
+    <circle cx="60" cy="60" r="50" fill="none" stroke="var(--border)" stroke-width="18"/>
+    ${segments.join('')}
+    <text x="60" y="55" text-anchor="middle" fill="var(--text)" font-size="18" font-family="Syne" font-weight="800">${total}</text>
+    <text x="60" y="70" text-anchor="middle" fill="var(--text2)" font-size="9">servicios</text>
+  </svg>`;
+
+  const legend = labels.map((l, i) => `
+    <div class="dl-item">
+      <div class="dl-dot" style="background:${colors[i]}"></div>
+      <span class="dl-label">${l}</span>
+      <span class="dl-val">${counts[i]}</span>
+    </div>
+  `).join('');
+
+  document.getElementById('donut-wrap').innerHTML = svg + `<div class="donut-legend">${legend}</div>`;
+}
+
+function renderRecent() {
+  const recent = [...services].sort((a,b) => (b.created||'').localeCompare(a.created||'')).slice(0, 5);
+  const el = document.getElementById('recent-list');
+  if (!recent.length) {
+    el.innerHTML = '<div class="empty-state"><i class="fa-solid fa-inbox"></i><p>Sin servicios registrados</p></div>';
+    return;
+  }
+  el.innerHTML = recent.map(s => `
+    <div class="recent-item">
+      <div class="ri-avatar"><i class="fa-solid fa-mobile-screen-button"></i></div>
+      <div>
+        <div class="ri-name">${s.nombre}</div>
+        <div class="ri-sub">${s.modelo} · ${s.folio}</div>
+      </div>
+      <span class="status-pill ${estadoClass[s.estado]||'sp-pending'}">${s.estado||'-'}</span>
+      <div class="ri-price">$${Number(s.costo_total||0).toLocaleString('es-MX',{minimumFractionDigits:2})}</div>
+    </div>
+  `).join('');
+}
+
+// ===== REPORTS =====
+function generateReport() {
+  const start = document.getElementById('rep-start').value;
+  const end = document.getElementById('rep-end').value;
+  const estado = document.getElementById('rep-estado').value;
+
+  let filtered = [...services];
+  if (start) filtered = filtered.filter(s => s.fecha_entrada >= start);
+  if (end) filtered = filtered.filter(s => s.fecha_entrada <= end);
+  if (estado) filtered = filtered.filter(s => s.estado === estado);
+
+  const income = filtered.reduce((a,s) => a + (s.costo_total||0), 0);
+  const expenses = filtered.reduce((a,s) => a + (s.costo_refaccion||0), 0);
+  const profit = income - expenses;
+
+  document.getElementById('rs-income').textContent = '$' + income.toLocaleString('es-MX', {minimumFractionDigits:2});
+  document.getElementById('rs-expenses').textContent = '$' + expenses.toLocaleString('es-MX', {minimumFractionDigits:2});
+  document.getElementById('rs-profit').textContent = '$' + profit.toLocaleString('es-MX', {minimumFractionDigits:2});
+  document.getElementById('rs-count').textContent = filtered.length;
+
+  let rangeLabel = 'Todos los registros';
+  if (start && end) rangeLabel = `${start} — ${end}`;
+  else if (start) rangeLabel = `Desde ${start}`;
+  else if (end) rangeLabel = `Hasta ${end}`;
+  document.getElementById('rep-range-label').textContent = rangeLabel;
+
+  const tbody = document.getElementById('report-tbody');
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state"><i class="fa-solid fa-inbox"></i><p>Sin registros en el período seleccionado</p></div></td></tr>`;
+    return;
+  }
+
+  filtered.sort((a,b) => (a.fecha_entrada||'').localeCompare(b.fecha_entrada||''));
+  tbody.innerHTML = filtered.map(s => {
+    const utilidad = (s.costo_total||0) - (s.costo_refaccion||0);
+    const utilColor = utilidad >= 0 ? 'text-success' : 'text-danger';
+    return `
+      <tr>
+        <td><span class="text-accent fw-bold">${s.folio||'-'}</span></td>
+        <td>
+          <div class="fw-bold">${s.nombre}</div>
+          <div class="td-sub">${s.telefono||''}</div>
+        </td>
+        <td>${s.modelo||'-'}</td>
+        <td><span class="status-pill ${estadoClass[s.estado]||'sp-pending'}">${s.estado||'-'}</span></td>
+        <td>${s.fecha_entrada||'-'}</td>
+        <td>${s.fecha_salida||'-'}</td>
+        <td class="text-right">$${Number(s.anticipo||0).toLocaleString('es-MX',{minimumFractionDigits:2})}</td>
+        <td class="text-right text-danger">$${Number(s.costo_refaccion||0).toLocaleString('es-MX',{minimumFractionDigits:2})}</td>
+        <td class="text-right text-accent fw-bold">$${Number(s.costo_total||0).toLocaleString('es-MX',{minimumFractionDigits:2})}</td>
+        <td class="text-right ${utilColor} fw-bold">$${utilidad.toLocaleString('es-MX',{minimumFractionDigits:2})}</td>
+      </tr>
+    `;
+  }).join('');
+
+  showToast(`Reporte generado — ${filtered.length} servicios`, 'success');
+}
+
+function exportCSV() {
+  const start = document.getElementById('rep-start').value;
+  const end = document.getElementById('rep-end').value;
+  let filtered = [...services];
+  if (start) filtered = filtered.filter(s => s.fecha_entrada >= start);
+  if (end) filtered = filtered.filter(s => s.fecha_entrada <= end);
+
+  const headers = ['Folio','Cliente','Teléfono','Modelo','Falla','Estado','Garantía','F.Entrada','F.Salida','Anticipo','Costo Ref.','Total','Utilidad'];
+  const rows = filtered.map(s => [
+    s.folio, s.nombre, s.telefono, s.modelo, s.falla, s.estado, s.garantia,
+    s.fecha_entrada, s.fecha_salida, s.anticipo||0, s.costo_refaccion||0,
+    s.costo_total||0, (s.costo_total||0)-(s.costo_refaccion||0)
+  ]);
+  const csv = [headers, ...rows].map(r => r.map(v => `"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'reporte_servicios.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('CSV exportado correctamente', 'success');
+}
+
+// ===== TOAST =====
+function showToast(msg, type = 'info') {
+  const icons = { success: 'fa-circle-check', error: 'fa-circle-xmark', info: 'fa-circle-info' };
+  const tc = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<i class="fa-solid ${icons[type]||icons.info}"></i><span>${msg}</span>`;
+  tc.appendChild(t);
+  setTimeout(() => { t.style.opacity='0'; t.style.transition='opacity 0.3s'; setTimeout(() => t.remove(), 300); }, 3000);
+}
+
+function scrollToForm() {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ===== PROFILE =====
+let userProfile = JSON.parse(localStorage.getItem('ts_profile') || '{}');
+let userPassword = localStorage.getItem('ts_password') || '1234';
+
+function loadProfile() {
+  const p = userProfile;
+  document.getElementById('prof-nombre').value = p.nombre || '';
+  document.getElementById('prof-correo').value = p.correo || '';
+  document.getElementById('prof-telefono').value = p.telefono || '';
+  document.getElementById('prof-local').value = p.local || '';
+  document.getElementById('prof-empresa').value = p.empresa || '';
+  updateProfileUI();
+}
+
+function updateProfileUI() {
+  const p = userProfile;
+  const nombre = p.nombre || 'Administrador';
+  const inicial = nombre.charAt(0).toUpperCase();
+
+  // Sidebar & topbar avatars
+  if (p.foto) {
+    const imgHTML = `<img src="${p.foto}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+    document.getElementById('user-av').innerHTML = imgHTML;
+    document.getElementById('topbar-av').innerHTML = `<img src="${p.foto}" style="width:38px;height:38px;object-fit:cover;border-radius:8px;">`;
+    document.getElementById('profile-avatar-display').innerHTML = `<img src="${p.foto}" style="width:100%;height:100%;object-fit:cover;">`;
+  } else {
+    document.getElementById('user-av').textContent = inicial;
+    document.getElementById('topbar-av').textContent = inicial;
+    document.getElementById('profile-avatar-display').textContent = inicial;
+  }
+
+  document.getElementById('user-name-display').textContent = nombre;
+  document.getElementById('profile-display-name').textContent = nombre;
+  document.getElementById('profile-display-correo').textContent = p.correo || '—';
+  document.getElementById('profile-display-tel').textContent = p.telefono || '—';
+  document.getElementById('profile-display-local').textContent = p.local || '—';
+  document.getElementById('profile-display-empresa').textContent = p.empresa || '—';
+
+  // Profile stats
+  document.getElementById('prof-stat-services').textContent = services.length;
+  const ingresos = services.reduce((a,s) => a + (s.costo_total||0), 0);
+  document.getElementById('prof-stat-ingresos').textContent = '$' + ingresos.toLocaleString('es-MX', {minimumFractionDigits:2});
+  document.getElementById('prof-stat-done').textContent = services.filter(s => s.estado === 'Entregado').length;
+  document.getElementById('prof-stat-pending').textContent = services.filter(s => ['Recibido','Diagnóstico','En proceso','Esperando refacción'].includes(s.estado)).length;
+}
+
+function saveProfile() {
+  userProfile.nombre = document.getElementById('prof-nombre').value.trim() || 'Administrador';
+  userProfile.correo = document.getElementById('prof-correo').value.trim();
+  userProfile.telefono = document.getElementById('prof-telefono').value.trim();
+  userProfile.local = document.getElementById('prof-local').value.trim();
+  userProfile.empresa = document.getElementById('prof-empresa').value.trim();
+  localStorage.setItem('ts_profile', JSON.stringify(userProfile));
+  updateProfileUI();
+  showToast('Perfil actualizado correctamente', 'success');
+}
+
+function updateProfilePhoto(input) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      userProfile.foto = e.target.result;
+      localStorage.setItem('ts_profile', JSON.stringify(userProfile));
+      updateProfileUI();
+      showToast('Foto de perfil actualizada', 'success');
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+function changePassword() {
+  const actual = document.getElementById('prof-pass-actual').value;
+  const nueva = document.getElementById('prof-pass-nueva').value;
+  const confirm = document.getElementById('prof-pass-confirm').value;
+
+  if (actual !== userPassword) {
+    showToast('La contraseña actual es incorrecta', 'error');
+    return;
+  }
+  if (nueva.length < 4) {
+    showToast('La nueva contraseña debe tener al menos 4 caracteres', 'error');
+    return;
+  }
+  if (nueva !== confirm) {
+    showToast('Las contraseñas no coinciden', 'error');
+    return;
+  }
+  userPassword = nueva;
+  localStorage.setItem('ts_password', userPassword);
+  clearPassFields();
+  showToast('Contraseña actualizada correctamente', 'success');
+}
+
+function clearPassFields() {
+  ['prof-pass-actual','prof-pass-nueva','prof-pass-confirm'].forEach(id => {
+    document.getElementById(id).value = '';
+    document.getElementById(id).type = 'password';
+  });
+  ['eye-actual','eye-nueva','eye-confirm'].forEach(id => {
+    document.getElementById(id).className = 'fa-solid fa-eye';
+  });
+  document.getElementById('pass-strength-bar').style.display = 'none';
+}
+
+function toggleFieldPass(fieldId, eyeId) {
+  const inp = document.getElementById(fieldId);
+  const icon = document.getElementById(eyeId);
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    icon.className = 'fa-solid fa-eye-slash';
+  } else {
+    inp.type = 'password';
+    icon.className = 'fa-solid fa-eye';
+  }
+}
+
+function checkPassStrength(val) {
+  const bar = document.getElementById('pass-strength-bar');
+  const label = document.getElementById('ps-label');
+  if (!val) { bar.style.display = 'none'; return; }
+  bar.style.display = 'block';
+
+  let score = 0;
+  if (val.length >= 6) score++;
+  if (val.length >= 10) score++;
+  if (/[A-Z]/.test(val) && /[0-9]/.test(val)) score++;
+  if (/[^A-Za-z0-9]/.test(val)) score++;
+
+  const colors = ['var(--danger)','#ff9f43','var(--accent)','var(--success)'];
+  const labels = ['Muy débil','Débil','Buena','Muy segura'];
+  [1,2,3,4].forEach(i => {
+    const el = document.getElementById('ps' + i);
+    el.style.background = i <= score + 1 ? colors[score] : 'var(--border)';
+  });
+  label.textContent = labels[score];
+  label.style.color = colors[score];
+}
+
+// ===== INIT =====
+updateBadge();
+
+// Set default dates in report
+const today = new Date().toISOString().split('T')[0];
+const firstDay = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
+document.getElementById('rep-start').value = firstDay;
+document.getElementById('rep-end').value = today;
+
+// Sample data for demo (only if empty)
+if (!services.length) {
+  const demo = [
+    { id: 1, folio:'SV-0001', nombre:'Carlos Ramírez', telefono:'33 1234 5678', correo:'carlos@mail.com', direccion:'Av. Juárez 123', modelo:'iPhone 13 Pro', serie:'F2HGJK92', falla:'Pantalla rota', descripcion:'Pantalla con fractura en parte superior', observaciones:'Sin accesorios', garantia:'15 días', estado:'Listo', fecha_entrada:'2025-01-10', fecha_salida:'2025-01-14', anticipo:500, costo_refaccion:1200, costo_total:2200, foto:'', created:'2025-01-10T10:00:00Z' },
+    { id: 2, folio:'SV-0002', nombre:'María López', telefono:'33 9876 5432', correo:'maria@mail.com', direccion:'Calle Morelos 45', modelo:'Samsung Galaxy S22', serie:'', falla:'No enciende', descripcion:'El equipo no responde al botón de encendido', observaciones:'Con cargador', garantia:'7 días', estado:'En proceso', fecha_entrada:'2025-01-15', fecha_salida:'', anticipo:300, costo_refaccion:800, costo_total:1500, foto:'', created:'2025-01-15T11:30:00Z' },
+    { id: 3, folio:'SV-0003', nombre:'Roberto Silva', telefono:'33 5555 1111', correo:'', direccion:'', modelo:'MacBook Pro 2021', serie:'C02XM3BNH7JY', falla:'Teclado con teclas pegadas', descripcion:'Varias teclas no responden', observaciones:'', garantia:'30 días', estado:'Diagnóstico', fecha_entrada:'2025-02-01', fecha_salida:'', anticipo:0, costo_refaccion:0, costo_total:0, foto:'', created:'2025-02-01T09:00:00Z' },
+    { id: 4, folio:'SV-0004', nombre:'Ana García', telefono:'33 7777 2222', correo:'ana.g@mail.com', direccion:'Insurgentes 88', modelo:'iPad Air 4', serie:'DLXVHJ12', falla:'Puerto de carga defectuoso', descripcion:'No carga con ningún cable', observaciones:'Con funda', garantia:'Sin garantía', estado:'Entregado', fecha_entrada:'2025-02-05', fecha_salida:'2025-02-08', anticipo:200, costo_refaccion:350, costo_total:700, foto:'', created:'2025-02-05T14:00:00Z' },
+    { id: 5, folio:'SV-0005', nombre:'Luis Torres', telefono:'33 4444 6666', correo:'ltorres@mail.com', direccion:'Reforma 200', modelo:'Dell Inspiron 15', serie:'CN0783T', falla:'Pantalla parpadea', descripcion:'Pantalla con parpadeo constante al moverse', observaciones:'', garantia:'15 días', estado:'Recibido', fecha_entrada:'2025-02-20', fecha_salida:'', anticipo:400, costo_refaccion:600, costo_total:1200, foto:'', created:'2025-02-20T16:00:00Z' },
+  ];
+  services = demo;
+  save();
+}
+updateBadge();
+</script>
+</body>
+</html>
