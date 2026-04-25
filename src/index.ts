@@ -2,14 +2,23 @@
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
+import fs from 'fs';
 import dotenv from 'dotenv';
 import { initDB } from './config/initDB';
 import routes from './routes/index';
+import { startAutoCorteScheduler } from './utils/autoCorte';
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Ensure upload directories exist
+const uploadDir = path.join(__dirname, '../public/uploads');
+const logosDir = path.join(uploadDir, 'logos');
+[uploadDir, logosDir].forEach(dir => {
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+});
 
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
@@ -28,6 +37,7 @@ app.get('*', (_req, res) => {
 
 // Iniciar BD primero, luego el servidor
 initDB().then(() => {
+  startAutoCorteScheduler();
   app.listen(PORT, () => {
     console.log('');
     console.log('  ╔════════════════════════════════════════╗');

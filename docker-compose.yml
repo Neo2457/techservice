@@ -1,0 +1,21 @@
+services:
+  app:
+    build: .
+    container_name: techservice
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      PORT: 3000
+      NODE_ENV: production
+      JWT_SECRET: ${JWT_SECRET:-techservice_super_secret_cambiame}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-24h}
+      DB_PATH: /app/database/techservice.db
+      UPLOAD_PATH: /app/public/uploads
+    volumes:
+      - db_data:/app/database
+      - uploads_data:/app/public/uploads
+
+volumes:
+  db_data:
+  uploads_data:

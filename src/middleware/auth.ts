@@ -8,7 +8,7 @@ export interface AuthPayload {
   userId: number;
   correo: string;
   tipo: string;
-  localId: number;
+  localId: number | null;
   empresaId: number;
 }
 
@@ -16,6 +16,7 @@ declare global {
   namespace Express {
     interface Request {
       user?: AuthPayload;
+      permisoScope?: string; // 'propio' | 'local' | 'empresa'
     }
   }
 }
@@ -38,8 +39,16 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction):
 }
 
 export function adminOnly(req: Request, res: Response, next: NextFunction): void {
-  if (req.user?.tipo !== 'admin') {
+  if (req.user?.tipo !== 'admin' && req.user?.tipo !== 'root') {
     res.status(403).json({ error: 'Solo administradores pueden realizar esta acción' });
+    return;
+  }
+  next();
+}
+
+export function rootOnly(req: Request, res: Response, next: NextFunction): void {
+  if (req.user?.tipo !== 'root') {
+    res.status(403).json({ error: 'Solo el desarrollador (root) puede realizar esta acción' });
     return;
   }
   next();

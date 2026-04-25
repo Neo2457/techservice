@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.env
+database/*.db
+database/*.db-wal
+database/*.db-shm
+public/uploads/
+.git/
+.DS_Store
+*.js.map
