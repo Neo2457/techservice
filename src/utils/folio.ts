@@ -17,9 +17,16 @@ function getFecha(): string {
   return `${dd}${mm}${aa}`;
 }
 
-export function generarFolio(db: Database, empresaId: number): string {
-  const r = get<{ n: number }>(db, 'SELECT COUNT(*) as n FROM servicios WHERE empresa_id = ?', [empresaId]);
-  const seq = r?.n || 1;
+// Si se pasa `id` se usa como secuencial (útil en imports masivos para evitar
+// duplicados por COUNT(*) en transacciones paralelas). Si no, se calcula con COUNT.
+export function generarFolio(db: Database, empresaId: number, id?: number | bigint): string {
+  let seq: number;
+  if (typeof id === 'number' || typeof id === 'bigint') {
+    seq = Number(id);
+  } else {
+    const r = get<{ n: number }>(db, 'SELECT COUNT(*) as n FROM servicios WHERE empresa_id = ?', [empresaId]);
+    seq = r?.n || 1;
+  }
   return `${getIniciales(db, empresaId)}${getFecha()}${String(seq).padStart(5, '0')}`;
 }
 
@@ -27,9 +34,14 @@ export function generarFolioVenta(db: Database, empresaId: number, id: number): 
   return `V${getIniciales(db, empresaId)}${getFecha()}${String(id).padStart(5, '0')}`;
 }
 
-export function generarFolioProducto(db: Database, empresaId: number): string {
-  const r = get<{ n: number }>(db, 'SELECT COUNT(*) as n FROM productos WHERE empresa_id = ?', [empresaId]);
-  const seq = r?.n || 1;
+export function generarFolioProducto(db: Database, empresaId: number, id?: number | bigint): string {
+  let seq: number;
+  if (typeof id === 'number' || typeof id === 'bigint') {
+    seq = Number(id);
+  } else {
+    const r = get<{ n: number }>(db, 'SELECT COUNT(*) as n FROM productos WHERE empresa_id = ?', [empresaId]);
+    seq = r?.n || 1;
+  }
   return `${getIniciales(db, empresaId)}${getFecha()}${String(seq).padStart(5, '0')}`;
 }
 

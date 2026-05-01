@@ -51,7 +51,7 @@ Ya están correctos en tu repo:
 
 | Script | Comando | Uso |
 |--------|---------|-----|
-| `build` | `npx tsc` | Compila TypeScript a `dist/` |
+| `build` | `tsc -p tsconfig.build.json` | Compila TypeScript a `dist/` con strict relajado para producción |
 | `start` | `node dist/index.js` | Arranca el server compilado |
 | `dev`   | `npx ts-node --transpile-only src/index.ts` | Solo desarrollo local |
 
@@ -263,9 +263,9 @@ cada cierto tiempo.
   estar siempre presente. Si no, reporta el log.
 
 ### TypeScript falla en build con `strict: true`
-- Tu `tsconfig.json` tiene `strict: true`. Si en producción te tira errores que en
-  local no veías, probablemente sea porque local usabas `--transpile-only` (que ignora
-  errores). Arréglalos en local con `npm run build` y vuelve a pushear.
+- El proyecto usa `tsconfig.build.json` para producción (con strict relajado) y
+  `tsconfig.json` (estricto) para desarrollo. Si tsc falla en build, asegúrate que
+  el script `build` en `package.json` apunte a `tsc -p tsconfig.build.json`.
 
 ---
 
