@@ -237,12 +237,14 @@ cada cierto tiempo.
 
 ## 9. Troubleshooting común
 
-### Error: "Cannot find module 'xxx'"
-- Build no instaló todas las deps. Cambia el build command a:
+### Error: "Cannot find module 'xxx'" o "tsc: command not found"
+- El proyecto incluye un `.npmrc` con `production=false` que fuerza la instalación
+  de devDependencies aunque `NODE_ENV=production` esté seteado. Además `typescript`
+  y `@types/node` se movieron de `devDependencies` a `dependencies` por la misma razón.
+- Si aún falla, el build command en hPanel debe ser:
   ```
   npm install --include=dev && npm run build
   ```
-  (Necesario porque `tsc` está en `devDependencies`.)
 
 ### La app se cae con "EADDRINUSE" o no arranca
 - Tienes hardcoded `PORT=3000` en algún lado. Tu `index.ts` está OK porque usa
