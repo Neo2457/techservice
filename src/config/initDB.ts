@@ -214,8 +214,8 @@ export async function initDB(): Promise<void> {
     CREATE INDEX IF NOT EXISTS idx_servicios_local_empresa ON servicios(local_id, empresa_id);
     CREATE INDEX IF NOT EXISTS idx_servicios_fecha_entrada ON servicios(fecha_entrada);
     CREATE INDEX IF NOT EXISTS idx_ventas_cliente          ON ventas(cliente_id);
-    CREATE INDEX IF NOT EXISTS idx_ventas_estado_fecha     ON ventas(estado, fecha_finalizacion);
-    CREATE INDEX IF NOT EXISTS idx_ventas_local_fecha      ON ventas(local_id, empresa_id, fecha_finalizacion);
+    -- Nota: los índices que dependen de columnas agregadas via ALTER TABLE
+    -- (estado, fecha_finalizacion) se crean más abajo, después de las migraciones.
     CREATE INDEX IF NOT EXISTS idx_clientes_nombre         ON personas(nombre);
     CREATE INDEX IF NOT EXISTS idx_personas_correo         ON personas(correo);
     CREATE INDEX IF NOT EXISTS idx_personas_tipo_empresa   ON personas(tipo, empresa_id);
@@ -291,6 +291,10 @@ export async function initDB(): Promise<void> {
   try { db.run("ALTER TABLE ventas ADD COLUMN fecha_finalizacion TEXT"); } catch(e) {}
   // Backfill: existing ventas get fecha_finalizacion = fecha
   try { db.run("UPDATE ventas SET fecha_finalizacion = fecha WHERE fecha_finalizacion IS NULL AND estado = 'completada'"); } catch(e) {}
+  // Índices que dependen de las columnas agregadas arriba (movidos del bloque CREATE inicial
+  // para soportar BDs nuevas donde la columna estado aún no existía al crear el índice).
+  try { db.run('CREATE INDEX IF NOT EXISTS idx_ventas_estado_fecha ON ventas(estado, fecha_finalizacion)'); } catch(e) {}
+  try { db.run('CREATE INDEX IF NOT EXISTS idx_ventas_local_fecha  ON ventas(local_id, empresa_id, fecha_finalizacion)'); } catch(e) {}
 
   // Add logo column to locales if not present (migration)
   try { db.run('ALTER TABLE locales ADD COLUMN logo TEXT'); } catch(e) { /* column already exists */ }
