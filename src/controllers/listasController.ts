@@ -6,7 +6,7 @@ import { registrarLog } from '../utils/logger';
 // ── Listas de Precios CRUD ──────────────────────────────────────
 
 export const getListasPrecios = async (req: Request, res: Response): Promise<void> => {
-  const { q, empresa_id, page = '1', limit = '20' } = req.query;
+  const { q, empresa_id, page = '1', limit = '20', sort } = req.query;
   const db = await getDB();
   const pageNum = parseInt(page as string) || 1;
   const limitNum = Math.min(parseInt(limit as string) || 20, 100);
@@ -32,7 +32,7 @@ export const getListasPrecios = async (req: Request, res: Response): Promise<voi
   const data = all(db,
     `SELECT lp.*, e.nombre as empresa_nombre,
             (SELECT COUNT(*) FROM clientes_listas cl WHERE cl.lista_id = lp.id) as total_clientes
-     FROM listas_precios lp LEFT JOIN empresa e ON lp.empresa_id = e.id${where} ORDER BY lp.nombre ASC LIMIT ? OFFSET ?`,
+     FROM listas_precios lp LEFT JOIN empresa e ON lp.empresa_id = e.id${where} ORDER BY ${{ nombre_asc:'lp.nombre ASC', nombre_desc:'lp.nombre DESC', descuento_asc:'lp.descuento_porcentaje ASC', descuento_desc:'lp.descuento_porcentaje DESC', fecha_asc:'lp.fecha_creacion ASC', fecha_desc:'lp.fecha_creacion DESC' }[sort as string] ?? 'lp.nombre ASC'} LIMIT ? OFFSET ?`,
     [...params, limitNum, offset]
   );
   res.json({ data, total, page: pageNum });

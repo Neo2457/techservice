@@ -7,7 +7,7 @@ import { registrarLog } from '../utils/logger';
 // GET /api/personas
 export const getPersonas = async (req: Request, res: Response): Promise<void> => {
   const db = await getDB();
-  const { q, rol, tipo, empresa_id, local_id, page = '1', limit = '20' } = req.query;
+  const { q, rol, tipo, empresa_id, local_id, page = '1', limit = '20', sort } = req.query;
   const pageNum = parseInt(page as string) || 1;
   const limitNum = Math.min(parseInt(limit as string) || 20, 200);
   const offset = (pageNum - 1) * limitNum;
@@ -52,7 +52,7 @@ export const getPersonas = async (req: Request, res: Response): Promise<void> =>
     LEFT JOIN locales l ON p.local_id = l.id
     LEFT JOIN empresa e ON p.empresa_id = e.id
     ${where}
-    ORDER BY p.nombre ASC
+    ORDER BY ${{ nombre_asc:'p.nombre ASC', nombre_desc:'p.nombre DESC', correo_asc:'p.correo ASC', correo_desc:'p.correo DESC', telefono_asc:'p.telefono ASC', telefono_desc:'p.telefono DESC', fecha_asc:'p.fecha_creacion ASC', fecha_desc:'p.fecha_creacion DESC' }[sort as string] ?? 'p.nombre ASC'}
     LIMIT ? OFFSET ?
   `, [...params, limitNum, offset]);
 

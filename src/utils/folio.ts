@@ -17,15 +17,19 @@ function getFecha(): string {
   return `${dd}${mm}${aa}`;
 }
 
-export function generarFolio(db: Database, empresaId: number, id: number): string {
-  return `${getIniciales(db, empresaId)}${getFecha()}${String(id).padStart(5, '0')}`;
+export function generarFolio(db: Database, empresaId: number): string {
+  const r = get<{ n: number }>(db, 'SELECT COUNT(*) as n FROM servicios WHERE empresa_id = ?', [empresaId]);
+  const seq = r?.n || 1;
+  return `${getIniciales(db, empresaId)}${getFecha()}${String(seq).padStart(5, '0')}`;
 }
 
 export function generarFolioVenta(db: Database, empresaId: number, id: number): string {
-  return 'V' + generarFolio(db, empresaId, id);
+  return `V${getIniciales(db, empresaId)}${getFecha()}${String(id).padStart(5, '0')}`;
 }
 
-export function generarFolioProducto(db: Database, empresaId: number, id: number): string {
-  return `${getIniciales(db, empresaId)}${getFecha()}${String(id).padStart(5, '0')}`;
+export function generarFolioProducto(db: Database, empresaId: number): string {
+  const r = get<{ n: number }>(db, 'SELECT COUNT(*) as n FROM productos WHERE empresa_id = ?', [empresaId]);
+  const seq = r?.n || 1;
+  return `${getIniciales(db, empresaId)}${getFecha()}${String(seq).padStart(5, '0')}`;
 }
 

@@ -7,7 +7,7 @@ import { registrarLog } from '../utils/logger';
 // GET /api/locales?empresa_id=N&page=1&limit=20
 export const getLocales = async (req: Request, res: Response): Promise<void> => {
   const db = await getDB();
-  const { empresa_id, page = '1', limit = '20' } = req.query;
+  const { empresa_id, page = '1', limit = '20', sort } = req.query;
   const empresaFilter = empresa_id ? Number(empresa_id) : null;
   const pageNum = parseInt(page as string) || 1;
   const limitNum = Math.min(parseInt(limit as string) || 20, 100);
@@ -31,7 +31,7 @@ export const getLocales = async (req: Request, res: Response): Promise<void> => 
     `SELECT l.*, e.nombre AS empresa_nombre,
             (SELECT COUNT(*) FROM personas WHERE local_id = l.id AND activo = 1 AND tipo IS NOT NULL) AS usuarios_count
      FROM locales l JOIN empresa e ON l.empresa_id = e.id${where}
-     ORDER BY e.nombre ASC, l.nombre_local ASC LIMIT ? OFFSET ?`,
+     ORDER BY ${({ nombre_asc:'l.nombre_local ASC', nombre_desc:'l.nombre_local DESC', empresa_asc:'e.nombre ASC', empresa_desc:'e.nombre DESC', ciudad_asc:'l.ciudad ASC', ciudad_desc:'l.ciudad DESC' } as Record<string,string>)[sort as string] ?? 'e.nombre ASC, l.nombre_local ASC'} LIMIT ? OFFSET ?`,
     [...params, limitNum, offset]
   );
   res.json({ data, total, page: pageNum });

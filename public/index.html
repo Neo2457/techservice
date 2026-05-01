@@ -1130,7 +1130,10 @@
     transition: color 0.15s;
   }
   thead th:hover { color: var(--text); }
-  thead th .sort-icon { margin-left: 4px; opacity: 0.4; }
+  thead th .sort-icon { margin-left: 4px; opacity: 0.4; font-style: normal; }
+  thead th[data-sort] { cursor: pointer; user-select: none; }
+  thead th[data-sort]:hover { color: var(--accent); }
+  thead th[data-sort].sort-active .sort-icon { opacity: 1; color: var(--accent); }
 
   tbody tr {
     border-bottom: 1px solid var(--border);
@@ -2234,22 +2237,28 @@
             <option value="15 días">15 días</option>
             <option value="30 días">30 días</option>
           </select>
+          <select class="filter-select" id="srv-per-page" onchange="currentPage=1;renderTable()" style="min-width:90px;">
+            <option value="10" selected>10 / pág</option>
+            <option value="25">25 / pág</option>
+            <option value="50">50 / pág</option>
+            <option value="100">100 / pág</option>
+          </select>
         </div>
 
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
-                <th class="col-priority-1" onclick="sortTable('folio')"><span data-i18n="srv.th.folio">Folio</span> <span class="sort-icon">↕</span></th>
-                <th class="col-priority-1" onclick="sortTable('nombre')"><span data-i18n="srv.th.cliente">Cliente / Equipo</span> <span class="sort-icon">↕</span></th>
-                <th class="col-priority-3" onclick="sortTable('modelo')"><span data-i18n="srv.th.modelo">Modelo</span> <span class="sort-icon">↕</span></th>
-                <th class="col-priority-4" onclick="sortTable('falla')"><span data-i18n="srv.th.falla">Falla</span> <span class="sort-icon">↕</span></th>
-                <th class="col-priority-1" onclick="sortTable('estado')"><span data-i18n="srv.th.estado">Estado</span> <span class="sort-icon">↕</span></th>
-                <th class="col-priority-3" onclick="sortTable('fecha_entrada')"><span data-i18n="srv.th.f.entrada">F. Entrada</span> <span class="sort-icon">↕</span></th>
-                <th id="th-costo-total" class="col-priority-3" onclick="sortTable('costo_total')"><span data-i18n="srv.th.total">Total</span> <span class="sort-icon">↕</span></th>
-                <th id="th-anticipo" class="col-priority-5" onclick="sortTable('anticipo')"><span data-i18n="srv.th.anticipo">Anticipo</span> <span class="sort-icon">↕</span></th>
-                <th class="col-priority-5" onclick="sortTable('fecha_salida')"><span data-i18n="srv.th.f.salida">F. Salida</span> <span class="sort-icon">↕</span></th>
-                <th class="col-priority-2" onclick="sortTable('garantia')"><span data-i18n="srv.th.garantia">Garantía</span> <span class="sort-icon">↕</span></th>
+                <th class="col-priority-1" data-sort="folio" onclick="sortTable('folio')"><span data-i18n="srv.th.folio">Folio</span> <span class="sort-icon">↕</span></th>
+                <th class="col-priority-1" data-sort="nombre" onclick="sortTable('nombre')"><span data-i18n="srv.th.cliente">Cliente / Equipo</span> <span class="sort-icon">↕</span></th>
+                <th class="col-priority-3" data-sort="modelo" onclick="sortTable('modelo')"><span data-i18n="srv.th.modelo">Modelo</span> <span class="sort-icon">↕</span></th>
+                <th class="col-priority-4" data-sort="falla" onclick="sortTable('falla')"><span data-i18n="srv.th.falla">Falla</span> <span class="sort-icon">↕</span></th>
+                <th class="col-priority-1" data-sort="estado" onclick="sortTable('estado')"><span data-i18n="srv.th.estado">Estado</span> <span class="sort-icon">↕</span></th>
+                <th class="col-priority-3 sort-active" data-sort="fecha_entrada" onclick="sortTable('fecha_entrada')"><span data-i18n="srv.th.f.entrada">F. Entrada</span> <span class="sort-icon">↓</span></th>
+                <th id="th-costo-total" class="col-priority-3" data-sort="costo_total" onclick="sortTable('costo_total')"><span data-i18n="srv.th.total">Total</span> <span class="sort-icon">↕</span></th>
+                <th id="th-anticipo" class="col-priority-5" data-sort="anticipo" onclick="sortTable('anticipo')"><span data-i18n="srv.th.anticipo">Anticipo</span> <span class="sort-icon">↕</span></th>
+                <th class="col-priority-5" data-sort="fecha_salida" onclick="sortTable('fecha_salida')"><span data-i18n="srv.th.f.salida">F. Salida</span> <span class="sort-icon">↕</span></th>
+                <th class="col-priority-2" data-sort="garantia" onclick="sortTable('garantia')"><span data-i18n="srv.th.garantia">Garantía</span> <span class="sort-icon">↕</span></th>
                 <th class="th-empresa-srv col-priority-4" style="display:none;" data-i18n="srv.th.empresa">Empresa</th>
                 <th class="col-priority-1" data-i18n="srv.th.acciones">Acciones</th>
               </tr>
@@ -2355,21 +2364,28 @@
           </div>
         </div>
         <div class="widget">
-          <div style="padding:16px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+          <div style="padding:16px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
             <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;" data-i18n="rep.detail.ventas">Detalle de ventas</div>
-            <span style="font-size:13px;color:var(--text2);" id="rv-range-label"></span>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <span style="font-size:13px;color:var(--text2);" id="rv-range-label"></span>
+              <select class="filter-select" id="rv-per-page" onchange="rvCurrentPage=1;generateReporteVentas()" style="min-width:90px;">
+                <option value="25" selected>25 / pág</option>
+                <option value="50">50 / pág</option>
+                <option value="100">100 / pág</option>
+              </select>
+            </div>
           </div>
           <div class="table-wrap">
             <table>
               <thead>
                 <tr>
-                  <th data-i18n="rep.th.folio">Folio</th>
-                  <th data-i18n="rep.th.fecha">Fecha</th>
-                  <th data-i18n="rep.th.cliente">Cliente</th>
+                  <th data-sort="folio" onclick="sortByCol(rvSort,'rv-tbody','folio',()=>{rvCurrentPage=1;},generateReporteVentas)" data-i18n="rep.th.folio">Folio <span class="sort-icon">↕</span></th>
+                  <th class="sort-active" data-sort="fecha" onclick="sortByCol(rvSort,'rv-tbody','fecha',()=>{rvCurrentPage=1;},generateReporteVentas)" data-i18n="rep.th.fecha">Fecha <span class="sort-icon">↓</span></th>
+                  <th data-sort="cliente" onclick="sortByCol(rvSort,'rv-tbody','cliente',()=>{rvCurrentPage=1;},generateReporteVentas)" data-i18n="rep.th.cliente">Cliente <span class="sort-icon">↕</span></th>
                   <th data-i18n="rep.th.cajero">Cajero</th>
-                  <th data-i18n="rep.th.metodo">Método</th>
+                  <th data-sort="metodo" onclick="sortByCol(rvSort,'rv-tbody','metodo',()=>{rvCurrentPage=1;},generateReporteVentas)" data-i18n="rep.th.metodo">Método <span class="sort-icon">↕</span></th>
                   <th class="text-right" data-i18n="rep.th.desc">Desc.</th>
-                  <th class="text-right" data-i18n="rep.th.total">Total</th>
+                  <th class="text-right" data-sort="total" onclick="sortByCol(rvSort,'rv-tbody','total',()=>{rvCurrentPage=1;},generateReporteVentas)" data-i18n="rep.th.total">Total <span class="sort-icon">↕</span></th>
                   <th data-i18n="rep.th.acciones">Acciones</th>
                 </tr>
               </thead>
@@ -2464,21 +2480,29 @@
         <div class="report-table-wrap">
           <div class="rtw-header">
             <h3 data-i18n="rep.srv.detail">Detalle de servicios</h3>
-            <span class="text-muted" style="font-size:13px;" id="rep-range-label"></span>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <span class="text-muted" style="font-size:13px;" id="rep-range-label"></span>
+              <select class="filter-select" id="rep-srv-per-page" onchange="repSrvPage=1;renderReporteSrv()" style="min-width:80px;">
+                <option value="25" selected>25 / pág</option>
+                <option value="50">50 / pág</option>
+                <option value="100">100 / pág</option>
+                <option value="9999">Todos</option>
+              </select>
+            </div>
           </div>
           <div class="table-wrap">
             <table>
               <thead>
                 <tr>
-                  <th data-i18n="rep.srv.th.folio">Folio</th>
-                  <th data-i18n="rep.srv.th.cliente">Cliente</th>
-                  <th data-i18n="rep.srv.th.equipo">Equipo / Modelo</th>
-                  <th data-i18n="rep.srv.th.estado">Estado</th>
-                  <th data-i18n="rep.srv.th.entrada">F. Entrada</th>
-                  <th data-i18n="rep.srv.th.salida">F. Salida</th>
-                  <th class="text-right" data-i18n="rep.srv.th.anticipo">Anticipo</th>
-                  <th class="text-right" data-i18n="rep.srv.th.costo">Costo Ref.</th>
-                  <th class="text-right" data-i18n="rep.srv.th.total">Total</th>
+                  <th data-sort="folio" onclick="sortByCol(repSrvSort,'report-tbody','folio',()=>{repSrvPage=1;},renderReporteSrv)" data-i18n="rep.srv.th.folio">Folio <span class="sort-icon">↕</span></th>
+                  <th data-sort="cliente_nombre" onclick="sortByCol(repSrvSort,'report-tbody','cliente_nombre',()=>{repSrvPage=1;},renderReporteSrv)" data-i18n="rep.srv.th.cliente">Cliente <span class="sort-icon">↕</span></th>
+                  <th data-sort="modelo" onclick="sortByCol(repSrvSort,'report-tbody','modelo',()=>{repSrvPage=1;},renderReporteSrv)" data-i18n="rep.srv.th.equipo">Equipo / Modelo <span class="sort-icon">↕</span></th>
+                  <th data-sort="estado" onclick="sortByCol(repSrvSort,'report-tbody','estado',()=>{repSrvPage=1;},renderReporteSrv)" data-i18n="rep.srv.th.estado">Estado <span class="sort-icon">↕</span></th>
+                  <th class="sort-active" data-sort="fecha_entrada" onclick="sortByCol(repSrvSort,'report-tbody','fecha_entrada',()=>{repSrvPage=1;},renderReporteSrv)" data-i18n="rep.srv.th.entrada">F. Entrada <span class="sort-icon">↓</span></th>
+                  <th data-sort="fecha_salida" onclick="sortByCol(repSrvSort,'report-tbody','fecha_salida',()=>{repSrvPage=1;},renderReporteSrv)" data-i18n="rep.srv.th.salida">F. Salida <span class="sort-icon">↕</span></th>
+                  <th class="text-right" data-sort="anticipo" onclick="sortByCol(repSrvSort,'report-tbody','anticipo',()=>{repSrvPage=1;},renderReporteSrv)" data-i18n="rep.srv.th.anticipo">Anticipo <span class="sort-icon">↕</span></th>
+                  <th class="text-right" data-sort="costo_refaccion" onclick="sortByCol(repSrvSort,'report-tbody','costo_refaccion',()=>{repSrvPage=1;},renderReporteSrv)" data-i18n="rep.srv.th.costo">Costo Ref. <span class="sort-icon">↕</span></th>
+                  <th class="text-right" data-sort="costo_total" onclick="sortByCol(repSrvSort,'report-tbody','costo_total',()=>{repSrvPage=1;},renderReporteSrv)" data-i18n="rep.srv.th.total">Total <span class="sort-icon">↕</span></th>
                   <th class="text-right" data-i18n="rep.srv.th.utilidad">Utilidad</th>
                 </tr>
               </thead>
@@ -2486,6 +2510,13 @@
                 <tr><td colspan="10"><div class="empty-state"><i class="fa-solid fa-chart-bar"></i><p data-i18n="rep.srv.empty">Genera un reporte para ver los datos</p></div></td></tr>
               </tbody>
             </table>
+          </div>
+          <div id="rep-srv-pagination" style="padding:12px 22px;border-top:1px solid var(--border);display:none;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+            <span style="font-size:13px;color:var(--text2);" id="rep-srv-page-info"></span>
+            <div style="display:flex;gap:6px;">
+              <button class="btn-outline" style="padding:5px 12px;font-size:12px;" id="rep-srv-btn-prev" onclick="repSrvPage--;renderReporteSrv()"><i class="fa-solid fa-chevron-left"></i></button>
+              <button class="btn-outline" style="padding:5px 12px;font-size:12px;" id="rep-srv-btn-next" onclick="repSrvPage++;renderReporteSrv()"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
           </div>
         </div>
 
@@ -2495,6 +2526,12 @@
             <h3><i class="fa-solid fa-coins" style="color:var(--accent);margin-right:8px;font-size:14px;"></i>Cobros registrados en el período</h3>
             <div style="display:flex;gap:10px;align-items:center;">
               <span id="rs-cobros-resumen" style="font-size:12px;color:var(--text3);"></span>
+              <select class="filter-select" id="cobros-per-page" onchange="cobrosPage=1;renderCobrosReporte()" style="min-width:80px;">
+                <option value="25" selected>25 / pág</option>
+                <option value="50">50 / pág</option>
+                <option value="100">100 / pág</option>
+                <option value="9999">Todos</option>
+              </select>
             </div>
           </div>
           <div class="report-summary" id="rs-cobros-cards" style="display:none;margin:0 0 12px;">
@@ -2503,23 +2540,30 @@
             <div class="rs-card profit"><div class="rs-label">Tarjeta</div><div class="rs-value" id="rs-cobros-tarjeta">$0</div></div>
             <div class="rs-card services"><div class="rs-label">Transferencia</div><div class="rs-value" id="rs-cobros-transferencia">$0</div></div>
           </div>
-          <div class="table-wrap" style="max-height:280px;">
+          <div class="table-wrap" style="max-height:320px;">
             <table>
               <thead>
                 <tr>
-                  <th>Fecha</th>
-                  <th>Folio servicio</th>
-                  <th>Cliente</th>
-                  <th>Equipo</th>
-                  <th>Concepto</th>
-                  <th>Método</th>
-                  <th class="text-right">Monto</th>
+                  <th class="sort-active" data-sort="fecha" onclick="sortByCol(cobrosSort,'rs-cobros-tbody','fecha',()=>{cobrosPage=1;},renderCobrosReporte)">Fecha <span class="sort-icon">↓</span></th>
+                  <th data-sort="servicio_folio" onclick="sortByCol(cobrosSort,'rs-cobros-tbody','servicio_folio',()=>{cobrosPage=1;},renderCobrosReporte)">Folio servicio <span class="sort-icon">↕</span></th>
+                  <th data-sort="cliente_nombre" onclick="sortByCol(cobrosSort,'rs-cobros-tbody','cliente_nombre',()=>{cobrosPage=1;},renderCobrosReporte)">Cliente <span class="sort-icon">↕</span></th>
+                  <th data-sort="modelo" onclick="sortByCol(cobrosSort,'rs-cobros-tbody','modelo',()=>{cobrosPage=1;},renderCobrosReporte)">Equipo <span class="sort-icon">↕</span></th>
+                  <th data-sort="concepto" onclick="sortByCol(cobrosSort,'rs-cobros-tbody','concepto',()=>{cobrosPage=1;},renderCobrosReporte)">Concepto <span class="sort-icon">↕</span></th>
+                  <th data-sort="metodo" onclick="sortByCol(cobrosSort,'rs-cobros-tbody','metodo',()=>{cobrosPage=1;},renderCobrosReporte)">Método <span class="sort-icon">↕</span></th>
+                  <th class="text-right" data-sort="monto" onclick="sortByCol(cobrosSort,'rs-cobros-tbody','monto',()=>{cobrosPage=1;},renderCobrosReporte)">Monto <span class="sort-icon">↕</span></th>
                 </tr>
               </thead>
               <tbody id="rs-cobros-tbody">
                 <tr><td colspan="7"><div class="empty-state" style="padding:20px;"><i class="fa-solid fa-coins"></i><p>Genera un reporte para ver los cobros</p></div></td></tr>
               </tbody>
             </table>
+          </div>
+          <div id="cobros-pagination" style="padding:12px 22px;border-top:1px solid var(--border);display:none;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+            <span style="font-size:13px;color:var(--text2);" id="cobros-page-info"></span>
+            <div style="display:flex;gap:6px;">
+              <button class="btn-outline" style="padding:5px 12px;font-size:12px;" id="cobros-btn-prev" onclick="cobrosPage--;renderCobrosReporte()"><i class="fa-solid fa-chevron-left"></i></button>
+              <button class="btn-outline" style="padding:5px 12px;font-size:12px;" id="cobros-btn-next" onclick="cobrosPage++;renderCobrosReporte()"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
           </div>
         </div>
       </div>
@@ -2577,21 +2621,27 @@
         <div class="report-table-wrap">
           <div class="rtw-header">
             <h3 data-i18n="rep.cortes.detail">Detalle de cortes</h3>
+            <select class="filter-select" id="rc-per-page" onchange="rcPage=1;renderReporteCortes()" style="min-width:80px;">
+              <option value="20" selected>20 / pág</option>
+              <option value="50">50 / pág</option>
+              <option value="100">100 / pág</option>
+              <option value="9999">Todos</option>
+            </select>
           </div>
           <div class="table-wrap">
             <table>
               <thead>
                 <tr>
-                  <th><span data-i18n="rep.cortes.th.usuario">Usuario</span></th>
-                  <th><span data-i18n="rep.cortes.th.fecha">Fecha</span></th>
+                  <th data-sort="usuario_nombre" onclick="sortByCol(rcSort,'rc-tbody','usuario_nombre',()=>{rcPage=1;},renderReporteCortes)"><span data-i18n="rep.cortes.th.usuario">Usuario</span> <span class="sort-icon">↕</span></th>
+                  <th class="sort-active" data-sort="fecha_apertura" onclick="sortByCol(rcSort,'rc-tbody','fecha_apertura',()=>{rcPage=1;},renderReporteCortes)"><span data-i18n="rep.cortes.th.fecha">Fecha</span> <span class="sort-icon">↓</span></th>
                   <th><span data-i18n="rep.cortes.th.inicio">Hora inicio</span></th>
-                  <th><span data-i18n="rep.cortes.th.fin">Hora fin</span></th>
-                  <th class="text-right"><span data-i18n="rep.cortes.th.fondo">Efectivo inicial</span></th>
-                  <th class="text-right"><span data-i18n="rep.cortes.th.ventas">Ventas</span></th>
+                  <th data-sort="fecha_cierre" onclick="sortByCol(rcSort,'rc-tbody','fecha_cierre',()=>{rcPage=1;},renderReporteCortes)"><span data-i18n="rep.cortes.th.fin">Hora fin</span> <span class="sort-icon">↕</span></th>
+                  <th class="text-right" data-sort="fondo_apertura" onclick="sortByCol(rcSort,'rc-tbody','fondo_apertura',()=>{rcPage=1;},renderReporteCortes)"><span data-i18n="rep.cortes.th.fondo">Efectivo inicial</span> <span class="sort-icon">↕</span></th>
+                  <th class="text-right" data-sort="total_ventas" onclick="sortByCol(rcSort,'rc-tbody','total_ventas',()=>{rcPage=1;},renderReporteCortes)"><span data-i18n="rep.cortes.th.ventas">Ventas</span> <span class="sort-icon">↕</span></th>
                   <th class="text-right"><span data-i18n="rep.cortes.th.retiros">Retiros</span></th>
                   <th class="text-right"><span data-i18n="rep.cortes.th.esperado">Esperado</span></th>
-                  <th class="text-right"><span data-i18n="rep.cortes.th.real">Real</span></th>
-                  <th class="text-right"><span data-i18n="rep.cortes.th.dif">Diferencia</span></th>
+                  <th class="text-right" data-sort="efectivo_contado" onclick="sortByCol(rcSort,'rc-tbody','efectivo_contado',()=>{rcPage=1;},renderReporteCortes)"><span data-i18n="rep.cortes.th.real">Real</span> <span class="sort-icon">↕</span></th>
+                  <th class="text-right" data-sort="diferencia" onclick="sortByCol(rcSort,'rc-tbody','diferencia',()=>{rcPage=1;},renderReporteCortes)"><span data-i18n="rep.cortes.th.dif">Diferencia</span> <span class="sort-icon">↕</span></th>
                   <th></th>
                 </tr>
               </thead>
@@ -2599,6 +2649,13 @@
                 <tr><td colspan="11"><div class="empty-state"><i class="fa-solid fa-scissors"></i><p data-i18n="rep.cortes.empty">Genera un reporte para ver los cortes</p></div></td></tr>
               </tbody>
             </table>
+          </div>
+          <div id="rc-pagination" style="padding:12px 22px;border-top:1px solid var(--border);display:none;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+            <span style="font-size:13px;color:var(--text2);" id="rc-page-info"></span>
+            <div style="display:flex;gap:6px;">
+              <button class="btn-outline" style="padding:5px 12px;font-size:12px;" id="rc-btn-prev" onclick="rcPage--;renderReporteCortes()"><i class="fa-solid fa-chevron-left"></i></button>
+              <button class="btn-outline" style="padding:5px 12px;font-size:12px;" id="rc-btn-next" onclick="rcPage++;renderReporteCortes()"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
           </div>
         </div>
       </div>
@@ -2629,18 +2686,24 @@
             <h3 data-i18n="rep.creditos.detail">Ventas pendientes de cobro</h3>
             <div style="display:flex;gap:10px;align-items:center;">
               <input type="text" class="filter-select" id="rcr-buscar" data-i18n-placeholder="rep.creditos.search" placeholder="Buscar folio o cliente..."
-                oninput="filterCreditosTable(this.value)" style="width:220px;">
+                oninput="rcrPage=1;filterCreditosTable(this.value)" style="width:220px;">
+              <select class="filter-select" id="rcr-per-page" onchange="rcrPage=1;renderCreditosTable()" style="min-width:80px;">
+                <option value="20" selected>20 / pág</option>
+                <option value="50">50 / pág</option>
+                <option value="100">100 / pág</option>
+                <option value="9999">Todos</option>
+              </select>
             </div>
           </div>
           <div class="table-wrap">
             <table>
               <thead>
                 <tr>
-                  <th class="col-priority-1"><span data-i18n="rep.creditos.th.folio">Folio</span></th>
-                  <th class="col-priority-1"><span data-i18n="rep.creditos.th.cliente">Cliente</span></th>
-                  <th class="col-priority-2"><span data-i18n="rep.creditos.th.fecha">Fecha venta</span></th>
+                  <th class="col-priority-1" data-sort="folio_venta" onclick="sortByCol(rcrSort,'rcr-tbody','folio_venta',()=>{rcrPage=1;},renderCreditosTable)"><span data-i18n="rep.creditos.th.folio">Folio</span> <span class="sort-icon">↕</span></th>
+                  <th class="col-priority-1" data-sort="cliente_nombre" onclick="sortByCol(rcrSort,'rcr-tbody','cliente_nombre',()=>{rcrPage=1;},renderCreditosTable)"><span data-i18n="rep.creditos.th.cliente">Cliente</span> <span class="sort-icon">↕</span></th>
+                  <th class="col-priority-2 sort-active" data-sort="fecha" onclick="sortByCol(rcrSort,'rcr-tbody','fecha',()=>{rcrPage=1;},renderCreditosTable)"><span data-i18n="rep.creditos.th.fecha">Fecha venta</span> <span class="sort-icon">↓</span></th>
                   <th class="col-priority-2"><span data-i18n="rep.creditos.th.productos">Productos</span></th>
-                  <th class="col-priority-1 text-right"><span data-i18n="rep.creditos.th.total">Total</span></th>
+                  <th class="col-priority-1 text-right" data-sort="total" onclick="sortByCol(rcrSort,'rcr-tbody','total',()=>{rcrPage=1;},renderCreditosTable)"><span data-i18n="rep.creditos.th.total">Total</span> <span class="sort-icon">↕</span></th>
                   <th class="col-priority-1"><span data-i18n="rep.creditos.th.acciones">Acciones</span></th>
                 </tr>
               </thead>
@@ -2651,6 +2714,13 @@
                 </div></td></tr>
               </tbody>
             </table>
+          </div>
+          <div id="rcr-pagination" style="padding:12px 22px;border-top:1px solid var(--border);display:none;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+            <span style="font-size:13px;color:var(--text2);" id="rcr-page-info"></span>
+            <div style="display:flex;gap:6px;">
+              <button class="btn-outline" style="padding:5px 12px;font-size:12px;" id="rcr-btn-prev" onclick="rcrPage--;renderCreditosTable()"><i class="fa-solid fa-chevron-left"></i></button>
+              <button class="btn-outline" style="padding:5px 12px;font-size:12px;" id="rcr-btn-next" onclick="rcrPage++;renderCreditosTable()"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
           </div>
         </div>
       </div>
@@ -2700,6 +2770,13 @@
           <div style="padding-top:18px;">
             <button class="btn-outline" onclick="clearLogFilters()" style="padding:9px 14px;font-size:13px;" title="Limpiar filtros"><i class="fa-solid fa-xmark"></i></button>
           </div>
+          <div style="padding-top:18px;">
+            <select class="f-select" id="logs-per-page" onchange="logsPage=1;loadLogs()" style="min-width:90px;">
+              <option value="50" selected>50 / pág</option>
+              <option value="100">100 / pág</option>
+              <option value="200">200 / pág</option>
+            </select>
+          </div>
         </div>
         <div style="border-radius:var(--radius-sm);overflow:hidden;border:1px solid var(--border);">
           <table style="width:100%;border-collapse:collapse;">
@@ -2730,14 +2807,21 @@
         </button>
       </div>
       <div class="table-card">
+        <div class="table-toolbar" style="padding:10px 18px;border-bottom:1px solid var(--border);">
+          <select class="filter-select" id="emp-per-page" onchange="empresasPage=1;loadEmpresas()" style="min-width:90px;">
+            <option value="20" selected>20 / pág</option>
+            <option value="50">50 / pág</option>
+            <option value="100">100 / pág</option>
+          </select>
+        </div>
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
-                <th class="col-priority-1"><span data-i18n="emp.th.nombre">Nombre</span></th>
-                <th class="col-priority-2"><span data-i18n="emp.th.iniciales">Iniciales</span></th>
-                <th class="col-priority-2"><span data-i18n="emp.th.rfc">RFC</span></th>
-                <th class="col-priority-3"><span data-i18n="emp.th.ciudad">Ciudad</span></th>
+                <th class="col-priority-1" data-sort="nombre" onclick="sortByCol(empSort,'empresas-tbody','nombre',()=>{empresasPage=1;},loadEmpresas)"><span data-i18n="emp.th.nombre">Nombre</span> <span class="sort-icon">↕</span></th>
+                <th class="col-priority-2" data-sort="iniciales" onclick="sortByCol(empSort,'empresas-tbody','iniciales',()=>{empresasPage=1;},loadEmpresas)"><span data-i18n="emp.th.iniciales">Iniciales</span> <span class="sort-icon">↕</span></th>
+                <th class="col-priority-2" data-sort="rfc" onclick="sortByCol(empSort,'empresas-tbody','rfc',()=>{empresasPage=1;},loadEmpresas)"><span data-i18n="emp.th.rfc">RFC</span> <span class="sort-icon">↕</span></th>
+                <th class="col-priority-3" data-sort="ciudad" onclick="sortByCol(empSort,'empresas-tbody','ciudad',()=>{empresasPage=1;},loadEmpresas)"><span data-i18n="emp.th.ciudad">Ciudad</span> <span class="sort-icon">↕</span></th>
                 <th class="col-priority-3"><span data-i18n="emp.th.encargado">Encargado</span></th>
                 <th class="col-priority-4"><span data-i18n="emp.th.locales">Locales</span></th>
                 <th class="col-priority-1"><span data-i18n="emp.th.estatus">Estatus</span></th>
@@ -2764,18 +2848,23 @@
         </button>
       </div>
       <div class="table-card">
-        <div class="table-toolbar" style="padding:12px 18px;border-bottom:1px solid var(--border);">
+        <div class="table-toolbar" style="padding:10px 18px;border-bottom:1px solid var(--border);">
           <select class="filter-select" id="filter-empresa-locales" onchange="localesPage=1;loadLocales()" style="min-width:200px;">
             <option value="" data-i18n="loc.filter.all.empresas">Todas las empresas</option>
+          </select>
+          <select class="filter-select" id="loc-per-page" onchange="localesPage=1;loadLocales()" style="min-width:90px;">
+            <option value="20" selected>20 / pág</option>
+            <option value="50">50 / pág</option>
+            <option value="100">100 / pág</option>
           </select>
         </div>
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
-                <th class="col-priority-1"><span data-i18n="loc.th.nombre">Nombre</span></th>
-                <th class="col-priority-4"><span data-i18n="loc.th.empresa">Empresa</span></th>
-                <th class="col-priority-4"><span data-i18n="loc.th.ciudad">Ciudad</span></th>
+                <th class="col-priority-1" data-sort="nombre" onclick="sortByCol(locSort,'locales-tbody','nombre',()=>{localesPage=1;},loadLocales)"><span data-i18n="loc.th.nombre">Nombre</span> <span class="sort-icon">↕</span></th>
+                <th class="col-priority-4" data-sort="empresa" onclick="sortByCol(locSort,'locales-tbody','empresa',()=>{localesPage=1;},loadLocales)"><span data-i18n="loc.th.empresa">Empresa</span> <span class="sort-icon">↕</span></th>
+                <th class="col-priority-4" data-sort="ciudad" onclick="sortByCol(locSort,'locales-tbody','ciudad',()=>{localesPage=1;},loadLocales)"><span data-i18n="loc.th.ciudad">Ciudad</span> <span class="sort-icon">↕</span></th>
                 <th class="col-priority-2"><span data-i18n="loc.th.telefono">Teléfono</span></th>
                 <th class="col-priority-3"><span data-i18n="loc.th.gerente">Gerente</span></th>
                 <th class="col-priority-4"><span data-i18n="loc.th.usuarios">Usuarios</span></th>
@@ -2809,6 +2898,11 @@
         <select class="filter-select" id="filter-personas-empresa" onchange="personasPage=1;loadPersonas()" style="display:none;">
           <option value="">Todas las empresas</option>
         </select>
+        <select class="filter-select" id="per-per-page" onchange="personasPage=1;loadPersonas()" style="min-width:90px;">
+          <option value="20" selected>20 / pág</option>
+          <option value="50">50 / pág</option>
+          <option value="100">100 / pág</option>
+        </select>
       </div>
       <!-- Role tabs -->
       <div id="personas-rol-tabs" style="display:inline-flex;gap:4px;flex-wrap:wrap;margin-bottom:14px;background:var(--bg2);border-radius:var(--radius-sm);padding:4px;">
@@ -2824,11 +2918,11 @@
           <table>
             <thead>
               <tr>
-                <th class="col-priority-1">Nombre</th>
+                <th class="col-priority-1 sort-active" data-sort="nombre" onclick="sortByCol(perSort,'personas-tbody','nombre',()=>{personasPage=1;},loadPersonas)">Nombre <span class="sort-icon">↑</span></th>
                 <th class="col-priority-2">Roles</th>
-                <th class="col-priority-3">Correo</th>
-                <th class="col-priority-2">Teléfono</th>
-                <th class="col-priority-1">Acceso</th>
+                <th class="col-priority-3" data-sort="correo" onclick="sortByCol(perSort,'personas-tbody','correo',()=>{personasPage=1;},loadPersonas)">Correo <span class="sort-icon">↕</span></th>
+                <th class="col-priority-2" data-sort="telefono" onclick="sortByCol(perSort,'personas-tbody','telefono',()=>{personasPage=1;},loadPersonas)">Teléfono <span class="sort-icon">↕</span></th>
+                <th class="col-priority-1" data-sort="fecha" onclick="sortByCol(perSort,'personas-tbody','fecha',()=>{personasPage=1;},loadPersonas)">Acceso <span class="sort-icon">↕</span></th>
                 <th class="col-priority-1">Acciones</th>
               </tr>
             </thead>
@@ -2890,6 +2984,11 @@
             <option value="existencia_desc">Existencia ↓</option>
             <option value="existencia_asc">Existencia ↑</option>
           </select>
+          <select class="filter-select" id="prod-per-page" onchange="productosPage=1;loadProductos()" style="min-width:90px;flex-shrink:0;">
+            <option value="20" selected>20 / pág</option>
+            <option value="50">50 / pág</option>
+            <option value="100">100 / pág</option>
+          </select>
           <button class="btn-outline" onclick="clearProductosFilters()" id="btn-clear-prod-filters" title="Limpiar filtros" style="padding:9px 12px;font-size:13px;flex-shrink:0;opacity:.4;">
             <i class="fa-solid fa-xmark"></i>
           </button>
@@ -2938,17 +3037,22 @@
           <select class="filter-select" id="filter-listas-empresa" onchange="filterListasPrecios()" style="display:none;min-width:180px;">
             <option value="" data-i18n="lp.filter.all.empresas">Todas las empresas</option>
           </select>
+          <select class="filter-select" id="listas-per-page" onchange="listasPage=1;loadListasPrecios()" style="min-width:90px;">
+            <option value="20" selected>20 / pág</option>
+            <option value="50">50 / pág</option>
+            <option value="100">100 / pág</option>
+          </select>
         </div>
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
-                <th class="col-priority-1"><span data-i18n="lp.th.nombre">Nombre</span></th>
+                <th class="col-priority-1 sort-active" data-sort="nombre" onclick="sortByCol(listSort,'listas-precios-tbody','nombre',()=>{listasPage=1;},loadListasPrecios)"><span data-i18n="lp.th.nombre">Nombre</span> <span class="sort-icon">↑</span></th>
                 <th class="col-priority-2"><span data-i18n="lp.th.descripcion">Descripción</span></th>
-                <th class="col-priority-1"><span data-i18n="lp.th.descuento">Descuento %</span></th>
+                <th class="col-priority-1" data-sort="descuento" onclick="sortByCol(listSort,'listas-precios-tbody','descuento',()=>{listasPage=1;},loadListasPrecios)"><span data-i18n="lp.th.descuento">Descuento %</span> <span class="sort-icon">↕</span></th>
                 <th class="col-priority-2"><span data-i18n="lp.th.clientes">Clientes</span></th>
                 <th class="col-priority-4"><span data-i18n="lp.th.empresa">Empresa</span></th>
-                <th class="col-priority-3"><span data-i18n="lp.th.fecha">Fecha creación</span></th>
+                <th class="col-priority-3" data-sort="fecha" onclick="sortByCol(listSort,'listas-precios-tbody','fecha',()=>{listasPage=1;},loadListasPrecios)"><span data-i18n="lp.th.fecha">Fecha creación</span> <span class="sort-icon">↕</span></th>
                 <th class="col-priority-1"><span data-i18n="lp.th.acciones">Acciones</span></th>
               </tr>
             </thead>
@@ -3631,7 +3735,7 @@
               <span data-i18n="cfg.plt.empty">No hay plantillas adicionales.</span>
             </div>
             <table class="data-table" id="plantillas-table" style="display:none;">
-              <thead><tr><th><span data-i18n="cfg.plt.th.nombre">Nombre</span></th><th><span data-i18n="cfg.plt.th.titulo">Título</span></th><th><span data-i18n="cfg.plt.th.creada">Creada</span></th><th style="width:100px;text-align:center;"><span data-i18n="cfg.plt.th.acciones">Acciones</span></th></tr></thead>
+              <thead><tr><th class="sort-active" data-sort="nombre" onclick="sortByCol(pltSort,'plantillas-tbody','nombre',()=>{},renderPlantillas)"><span data-i18n="cfg.plt.th.nombre">Nombre</span> <span class="sort-icon">↑</span></th><th data-sort="ticket_titulo" onclick="sortByCol(pltSort,'plantillas-tbody','ticket_titulo',()=>{},renderPlantillas)"><span data-i18n="cfg.plt.th.titulo">Título</span> <span class="sort-icon">↕</span></th><th data-sort="fecha_creacion" onclick="sortByCol(pltSort,'plantillas-tbody','fecha_creacion',()=>{},renderPlantillas)"><span data-i18n="cfg.plt.th.creada">Creada</span> <span class="sort-icon">↕</span></th><th style="width:100px;text-align:center;"><span data-i18n="cfg.plt.th.acciones">Acciones</span></th></tr></thead>
               <tbody id="plantillas-tbody"></tbody>
             </table>
           </div>
@@ -4084,10 +4188,25 @@
     <section class="page" id="page-importar-productos">
       <div class="page-header">
         <div style="display:flex;gap:10px;align-items:center;">
+          <!-- Type tabs -->
+          <div style="display:flex;gap:0;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;">
+            <button id="imp-tab-productos" class="imp-tipo-tab" onclick="setImportTipo('productos')"
+              style="padding:9px 16px;font-size:13px;border:none;cursor:pointer;background:transparent;color:var(--text);font-weight:500;transition:background .15s;">
+              <i class="fa-solid fa-boxes-stacked" style="margin-right:6px;"></i>Productos
+            </button>
+            <button id="imp-tab-clientes" class="imp-tipo-tab" onclick="setImportTipo('clientes')"
+              style="padding:9px 16px;font-size:13px;border:none;cursor:pointer;background:transparent;color:var(--text);font-weight:500;transition:background .15s;display:none;">
+              <i class="fa-solid fa-users" style="margin-right:6px;"></i>Clientes
+            </button>
+            <button id="imp-tab-servicios" class="imp-tipo-tab" onclick="setImportTipo('servicios')"
+              style="padding:9px 16px;font-size:13px;border:none;cursor:pointer;background:transparent;color:var(--text);font-weight:500;transition:background .15s;display:none;">
+              <i class="fa-solid fa-screwdriver-wrench" style="margin-right:6px;"></i>Servicios
+            </button>
+          </div>
           <button class="btn-outline" onclick="downloadPlantillaImport()" style="font-size:13px;padding:10px 18px;">
             <i class="fa-solid fa-download"></i> Plantilla
           </button>
-          <button class="btn-outline" onclick="goTo('productos')" style="font-size:13px;padding:10px 18px;">
+          <button class="btn-outline" id="imp-volver-btn" onclick="goTo('productos')" style="font-size:13px;padding:10px 18px;">
             <i class="fa-solid fa-arrow-left"></i> Volver
           </button>
         </div>
@@ -4113,27 +4232,11 @@
           <div id="imp-local-group" style="margin-top:20px;display:none;">
             <label class="f-label">Local de destino</label>
             <select class="f-select" id="imp-local-id" style="max-width:320px;"></select>
-            <div style="font-size:11px;color:var(--text3);margin-top:4px;">Los productos importados se asignarán a este local.</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:4px;" id="imp-local-hint">Los productos importados se asignarán a este local.</div>
           </div>
 
-          <!-- Columns reference -->
-          <div style="margin-top:24px;padding:16px;background:var(--bg2);border-radius:var(--radius-sm);border:1px solid var(--border);">
-            <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px;display:flex;align-items:center;gap:6px;">
-              <i class="fa-solid fa-circle-info" style="color:var(--accent);"></i> Columnas reconocidas en el archivo
-            </div>
-            <div style="display:flex;flex-wrap:wrap;gap:6px;">
-              <span style="font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:3px 8px;"><strong>nombre</strong> <span style="color:var(--danger);">*</span></span>
-              <span style="font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:3px 8px;"><strong>sku</strong> / clave / modelo / referencia</span>
-              <span style="font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:3px 8px;"><strong>codigo</strong> / barcode / ean</span>
-              <span style="font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:3px 8px;"><strong>tipo</strong> / categoria</span>
-              <span style="font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:3px 8px;"><strong>compra</strong> / costo</span>
-              <span style="font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:3px 8px;"><strong>venta</strong> / precio <span style="color:var(--danger);">*</span></span>
-              <span style="font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:3px 8px;"><strong>existencia</strong> / stock / qty</span>
-            </div>
-            <div style="margin-top:8px;font-size:11px;color:var(--text3);">
-              La primera fila debe ser el encabezado. Se detecta por código de barras, SKU o nombre para determinar si es nuevo o actualización.
-            </div>
-          </div>
+          <!-- Columns reference (dynamic by tipo) -->
+          <div id="imp-cols-ref" style="margin-top:24px;padding:16px;background:var(--bg2);border-radius:var(--radius-sm);border:1px solid var(--border);"></div>
 
           <div id="imp-upload-error" style="display:none;margin-top:16px;padding:12px 16px;background:rgba(255,71,87,.1);border:1px solid var(--danger);border-radius:var(--radius-sm);font-size:13px;color:var(--danger);"></div>
           <div id="imp-upload-loading" style="display:none;margin-top:16px;text-align:center;color:var(--text2);font-size:14px;">
@@ -4189,7 +4292,7 @@
         <div class="table-card" style="padding:0;">
           <div class="table-wrap">
             <table id="imp-preview-table">
-              <thead>
+              <thead id="imp-preview-thead">
                 <tr>
                   <th style="width:110px;">Estado</th>
                   <th>Nombre</th>
@@ -4219,7 +4322,7 @@
             <button class="btn-outline" onclick="resetImport()" style="font-size:14px;padding:12px 24px;">
               <i class="fa-solid fa-file-arrow-up"></i> Nueva importación
             </button>
-            <button class="btn-accent" onclick="goTo('productos')" style="font-size:14px;padding:12px 24px;">
+            <button class="btn-accent" id="imp-result-ver-btn" onclick="goTo('productos')" style="font-size:14px;padding:12px 24px;">
               <i class="fa-solid fa-boxes-stacked"></i> Ver productos
             </button>
           </div>
@@ -7390,7 +7493,7 @@ function hasAnyPermiso(mod) {
 let editingId = null;
 let deleteId = null;
 let currentPage = 1;
-const PER_PAGE = 10;
+let PER_PAGE = 10;
 let editingUserId = null;
 let permisosUserId = null;
 let acSearchTimer = null;
@@ -7398,20 +7501,34 @@ let editingEmpresaId = null;
 let editingLocalId = null;
 let editingProductoId = null;
 let productosPage = 1;
-const PROD_LIMIT = 20;
+let PROD_LIMIT = 20;
 let allEmpresas = [];
 let editingClienteId = null;
 let clientesPage = 1;
-const CLIENTES_PER_PAGE = 20;
+let CLIENTES_PER_PAGE = 20;
 let editingListaId = null;
 let listasPage = 1;
-const LISTAS_PER_PAGE = 20;
+let LISTAS_PER_PAGE = 20;
 let usuariosPage = 1;
-const USUARIOS_PER_PAGE = 20;
+let USUARIOS_PER_PAGE = 20;
 let empresasPage = 1;
-const EMPRESAS_PER_PAGE = 20;
+let EMPRESAS_PER_PAGE = 20;
 let localesPage = 1;
-const LOCALES_PER_PAGE = 20;
+let LOCALES_PER_PAGE = 20;
+// sort state per table
+const srvSort  = { f: 'fecha_entrada', d: 'desc' };
+const empSort  = { f: 'nombre',        d: 'asc'  };
+const locSort  = { f: 'nombre',        d: 'asc'  };
+const perSort  = { f: 'nombre',        d: 'asc'  };
+const listSort = { f: 'nombre',        d: 'asc'  };
+const usrSort  = { f: 'fecha',         d: 'desc' };
+const rvSort   = { f: 'fecha',         d: 'desc' };
+// report panel — client-side sort + pagination
+let reportSrvData = [];   const repSrvSort = { f: 'fecha_entrada', d: 'desc' }; let REP_SRV_PER_PAGE = 25; let repSrvPage = 1;
+let reportCobrosData = []; const cobrosSort = { f: 'fecha',         d: 'desc' }; let COBROS_PER_PAGE  = 25; let cobrosPage  = 1;
+let reportCortesData = []; const rcSort     = { f: 'fecha_apertura', d: 'desc' }; let RC_PER_PAGE    = 20; let rcPage      = 1;
+let rcrFilteredData  = []; const rcrSort    = { f: 'fecha',          d: 'desc' }; let RCR_PER_PAGE   = 20; let rcrPage     = 1;
+let plantillasData   = [];  const pltSort   = { f: 'nombre',         d: 'asc'  };
 let dashMode = 'general'; // 'general' | 'local' | 'empleado'
 
 // POS state
@@ -7439,26 +7556,36 @@ async function doLogin() {
   const correo = $id('inp-user').value.trim();
   const contrasena = $id('inp-pass').value;
   if (!correo || !contrasena) { showToast('Ingresa usuario y contraseña', 'error'); return; }
+  // Only the API call uses a user-facing catch (wrong credentials, network error)
+  let data;
   try {
-    const data = await api('POST', '/auth/login', { correo, contrasena });
-    token = data.token;
-    currentUserData = data.usuario;
-    userPermisos = data.permisos || {};
-    localStorage.setItem('ts_token', token);
-    localStorage.setItem('ts_user', JSON.stringify(currentUserData));
-    localStorage.setItem('ts_permisos', JSON.stringify(userPermisos));
-    $id('login-screen').style.display = 'none';
-    $id('app').style.display = 'flex';
-    // Load config data first so allEstados etc. are ready before rendering
-    await Promise.all([loadEstadosConfig(), loadRolesConfig(), loadTiposProductos(), loadNivelesPrecios()]).catch(() => {});
-    applyPermisos();
-    updateProfileUI();
-    startAutoCorteWatcher();
-    startNotifWatcher();
-    showToast('Bienvenido, ' + currentUserData.nombre, 'success');
+    data = await api('POST', '/auth/login', { correo, contrasena });
   } catch (e) {
     showToast(e.message || 'Credenciales incorrectas', 'error');
+    return;
   }
+  // Post-login initialization — errors here are non-fatal and must not show as toasts
+  token = data.token;
+  currentUserData = data.usuario;
+  userPermisos = data.permisos || {};
+  localStorage.setItem('ts_token', token);
+  localStorage.setItem('ts_user', JSON.stringify(currentUserData));
+  localStorage.setItem('ts_permisos', JSON.stringify(userPermisos));
+  $id('login-screen').style.display = 'none';
+  $id('app').style.display = 'flex';
+  const _loginTipo = currentUserData.tipo;
+  $id('dash-greeting').style.display    = _loginTipo === 'empleado' ? '' : 'none';
+  $id('dash-admin-header').style.display = _loginTipo === 'empleado' ? 'none' : 'flex';
+  // Activate dashboard immediately so skeletons are visible before async config loads
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  $id('page-dashboard').classList.add('active');
+  dashShowSkeletons();
+  await Promise.all([loadEstadosConfig(), loadRolesConfig(), loadTiposProductos(), loadNivelesPrecios()]).catch(() => {});
+  try { applyPermisos(); } catch(e) { console.warn('[doLogin] init error:', e); try { goTo('dashboard'); } catch(e2) {} }
+  updateProfileUI();
+  startAutoCorteWatcher();
+  startNotifWatcher();
+  showToast('Bienvenido, ' + currentUserData.nombre, 'success');
 }
 
 $id('inp-pass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
@@ -7493,82 +7620,86 @@ function applyPermisos() {
   const isRoot = tipo === 'root';
   const isAdmin = tipo === 'root' || tipo === 'admin';
 
-  // Show/hide nav items based on permisos
-  $id('nav-servicios').style.display = (isAdmin || hasAnyPermiso('servicios')) ? '' : 'none';
-  $id('nav-reportes').style.display = (isAdmin || hasAnyPermiso('reportes') || hasAnyPermiso('auditoria')) ? '' : 'none';
-  $id('nav-empresas').style.display = isRoot ? '' : 'none';
-  $id('nav-locales').style.display = (isAdmin || hasAnyPermiso('locales')) ? '' : 'none';
-  $id('nav-configuracion').style.display = isAdmin ? '' : 'none';
+  // Wrap UI setup in try/catch so any missing element never blocks navigation
+  try {
+    // Show/hide nav items based on permisos
+    $id('nav-servicios').style.display = (isAdmin || hasAnyPermiso('servicios')) ? '' : 'none';
+    $id('nav-reportes').style.display = (isAdmin || hasAnyPermiso('reportes') || hasAnyPermiso('auditoria')) ? '' : 'none';
+    $id('nav-empresas').style.display = isRoot ? '' : 'none';
+    $id('nav-locales').style.display = (isAdmin || hasAnyPermiso('locales')) ? '' : 'none';
+    $id('nav-configuracion').style.display = isAdmin ? '' : 'none';
 
-  // POS nav items
-  const hasPOS = isAdmin || hasPermiso('ventas', 'crear') || hasAnyPermiso('productos') || hasAnyPermiso('cortes');
-  $id('nav-pos-label').style.display = hasPOS ? '' : 'none';
-  $id('nav-pos').style.display = (isAdmin || hasPermiso('ventas', 'crear') || hasAnyPermiso('cortes')) ? '' : 'none';
-  $id('nav-productos').style.display = (isAdmin || hasAnyPermiso('productos')) ? '' : 'none';
-  const canImport = isAdmin || hasPermiso('importar_productos', 'crear');
-  $id('nav-importar-productos').style.display = canImport ? '' : 'none';
-  const btnImp = $id('btn-importar-productos');
-  if (btnImp) btnImp.style.display = canImport ? '' : 'none';
-  $id('nav-personas').style.display = (isAdmin || hasAnyPermiso('personas') || hasAnyPermiso('clientes')) ? '' : 'none';
-  $id('nav-listas-precios').style.display = isAdmin ? '' : 'none';
+    // POS nav items
+    const hasPOS = isAdmin || hasPermiso('ventas', 'crear') || hasAnyPermiso('productos') || hasAnyPermiso('cortes');
+    $id('nav-pos-label').style.display = hasPOS ? '' : 'none';
+    $id('nav-pos').style.display = (isAdmin || hasPermiso('ventas', 'crear') || hasAnyPermiso('cortes')) ? '' : 'none';
+    $id('nav-productos').style.display = (isAdmin || hasAnyPermiso('productos')) ? '' : 'none';
+    const canImport = isAdmin || hasPermiso('importar_productos', 'crear');
+    $id('nav-importar-productos').style.display = canImport ? '' : 'none';
+    const btnImp = $id('btn-importar-productos');
+    if (btnImp) btnImp.style.display = canImport ? '' : 'none';
+    $id('nav-personas').style.display = (isAdmin || hasAnyPermiso('personas') || hasAnyPermiso('clientes')) ? '' : 'none';
+    $id('nav-listas-precios').style.display = isAdmin ? '' : 'none';
 
-  // Dashboard POS widgets
-  const dashPosStats = $id('dashboard-pos-stats');
-  const dashVentasRec = $id('dashboard-ventas-recientes');
-  if (dashPosStats) dashPosStats.style.display = hasPOS ? '' : 'none';
-  if (dashVentasRec) dashVentasRec.style.display = hasPOS ? '' : 'none';
+    // Dashboard POS widgets
+    const dashPosStats = $id('dashboard-pos-stats');
+    const dashVentasRec = $id('dashboard-ventas-recientes');
+    if (dashPosStats) dashPosStats.style.display = hasPOS ? '' : 'none';
+    if (dashVentasRec) dashVentasRec.style.display = hasPOS ? '' : 'none';
 
-  // Show sandbox nav for root only
-  $id('nav-dev-label').style.display = isRoot ? '' : 'none';
-  $id('nav-sandbox').style.display = isRoot ? '' : 'none';
+    // Show sandbox nav for root only
+    $id('nav-dev-label').style.display = isRoot ? '' : 'none';
+    $id('nav-sandbox').style.display = isRoot ? '' : 'none';
 
-  // Hide section labels when all their items are hidden
-  const vis = id => $id(id)?.style.display !== 'none';
-  $id('nav-gestion-label').style.display = (vis('nav-servicios') || vis('nav-reportes')) ? '' : 'none';
-  $id('nav-org-label').style.display = (vis('nav-empresas') || vis('nav-locales')) ? '' : 'none';
-  $id('nav-sistema-label').style.display = vis('nav-configuracion') ? '' : 'none';
+    // Hide section labels when all their items are hidden
+    const vis = id => $id(id)?.style.display !== 'none';
+    $id('nav-gestion-label').style.display = (vis('nav-servicios') || vis('nav-reportes')) ? '' : 'none';
+    $id('nav-org-label').style.display = (vis('nav-empresas') || vis('nav-locales')) ? '' : 'none';
+    $id('nav-sistema-label').style.display = vis('nav-configuracion') ? '' : 'none';
 
-  // Show/hide create service button
-  const canCreate = hasPermiso('servicios', 'crear');
-  document.querySelectorAll('[onclick="openModal()"]').forEach(b => b.style.display = canCreate ? '' : 'none');
+    // Show/hide create service button
+    const canCreate = hasPermiso('servicios', 'crear');
+    document.querySelectorAll('[onclick="openModal()"]').forEach(b => b.style.display = canCreate ? '' : 'none');
 
-  // Show/hide root-only filters
-  if (isRoot) {
-    $id('dashboard-filters').style.display = '';
-    $id('filter-srv-empresa').style.display = '';
-    $id('filter-srv-local').style.display = '';
-    const uEmpEl = $id('filter-usuarios-empresa'); if (uEmpEl) uEmpEl.style.display = '';
-    const uLocEl = $id('filter-usuarios-local');   if (uLocEl) uLocEl.style.display = '';
-    $id('filter-personas-empresa').style.display = '';
-    $id('rep-empresa-group').style.display = '';
-    $id('rep-local-group').style.display = '';
-    document.querySelectorAll('.th-empresa-srv').forEach(th => th.style.display = '');
-    populateEmpresaFilters();
-    populatePersonasEmpresaFilter();
-  } else {
-    // Hide root-only filters
-    $id('dashboard-filters').style.display = 'none';
-    $id('filter-srv-empresa').style.display = 'none';
-    $id('filter-srv-local').style.display = 'none';
-    const uEmpEl2 = $id('filter-usuarios-empresa'); if (uEmpEl2) uEmpEl2.style.display = 'none';
-    $id('filter-personas-empresa').style.display = 'none';
-    $id('rep-empresa-group').style.display = 'none';
-    $id('rep-local-group').style.display = 'none';
-    document.querySelectorAll('.th-empresa-srv').forEach(th => th.style.display = 'none');
-
-    if (isAdmin) {
-      const uLocEl2 = $id('filter-usuarios-local'); if (uLocEl2) { uLocEl2.style.display = ''; }
-      populateAdminLocalFilters();
+    // Show/hide root-only filters
+    if (isRoot) {
+      const _dfEl = $id('dashboard-filters'); if (_dfEl) _dfEl.style.display = '';
+      const _srvEmp = $id('filter-srv-empresa'); if (_srvEmp) _srvEmp.style.display = '';
+      const _srvLoc = $id('filter-srv-local');   if (_srvLoc) _srvLoc.style.display = '';
+      const uEmpEl = $id('filter-usuarios-empresa'); if (uEmpEl) uEmpEl.style.display = '';
+      const uLocEl = $id('filter-usuarios-local');   if (uLocEl) uLocEl.style.display = '';
+      const _persEmp = $id('filter-personas-empresa'); if (_persEmp) _persEmp.style.display = '';
+      const _repEmp = $id('rep-empresa-group'); if (_repEmp) _repEmp.style.display = '';
+      const _repLoc = $id('rep-local-group');   if (_repLoc) _repLoc.style.display = '';
+      document.querySelectorAll('.th-empresa-srv').forEach(th => th.style.display = '');
+      populateEmpresaFilters();
+      populatePersonasEmpresaFilter();
     } else {
-      const uLocEl3 = $id('filter-usuarios-local'); if (uLocEl3) uLocEl3.style.display = 'none';
+      // Hide root-only filters
+      const _dfEl2 = $id('dashboard-filters'); if (_dfEl2) _dfEl2.style.display = 'none';
+      const _srvEmp2 = $id('filter-srv-empresa'); if (_srvEmp2) _srvEmp2.style.display = 'none';
+      const _srvLoc2 = $id('filter-srv-local');   if (_srvLoc2) _srvLoc2.style.display = 'none';
+      const uEmpEl2 = $id('filter-usuarios-empresa'); if (uEmpEl2) uEmpEl2.style.display = 'none';
+      const _persEmp2 = $id('filter-personas-empresa'); if (_persEmp2) _persEmp2.style.display = 'none';
+      const _repEmp2 = $id('rep-empresa-group'); if (_repEmp2) _repEmp2.style.display = 'none';
+      const _repLoc2 = $id('rep-local-group');   if (_repLoc2) _repLoc2.style.display = 'none';
+      document.querySelectorAll('.th-empresa-srv').forEach(th => th.style.display = 'none');
+
+      if (isAdmin) {
+        const uLocEl2 = $id('filter-usuarios-local'); if (uLocEl2) uLocEl2.style.display = '';
+        populateAdminLocalFilters();
+      } else {
+        const uLocEl3 = $id('filter-usuarios-local'); if (uLocEl3) uLocEl3.style.display = 'none';
+      }
     }
+  } catch(e) {
+    console.warn('[applyPermisos] UI setup error (non-fatal):', e);
   }
 
-  // Restore last visited page, fallback to dashboard
+  // Navigation is always outside the try/catch so it always runs
   const lastPage = localStorage.getItem('ts_last_page') || 'dashboard';
   const validPages = ['dashboard','services','reportes','pos','productos','clientes','personas','listas-precios','usuarios','empresas','locales','configuracion','sandbox','profile'];
   let pageToRestore = validPages.includes(lastPage) ? lastPage : 'dashboard';
-  // Permission guards: root-only pages
   if (pageToRestore === 'empresas' && tipo !== 'root') pageToRestore = 'dashboard';
   if (pageToRestore === 'sandbox' && tipo !== 'root') pageToRestore = 'dashboard';
   goTo(pageToRestore);
@@ -7683,33 +7814,36 @@ function goTo(page, el) {
   localStorage.setItem('ts_last_page', page);
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   const pageEl = $id('page-' + page);
+  if (!pageEl) { console.warn('[goTo] page not found:', page); return; }
   pageEl.classList.add('notransition');
   pageEl.classList.add('active');
   requestAnimationFrame(() => { requestAnimationFrame(() => { pageEl.classList.remove('notransition'); }); });
   const titles = () => ({ dashboard: t('nav.dashboard'), services: t('srv.title'), reportes: t('rep.title'), profile: t('prof.title'), usuarios: t('usr.title'), empresas: t('emp.title'), locales: t('loc.title'), configuracion: t('cfg.title'), sandbox: t('sbx.title'), pos: t('nav.section.pos'), productos: t('prod.title'), clientes: t('cli.title'), 'listas-precios': t('lp.title'), personas: 'Personas', 'importar-productos': 'Importar productos' });
   const subtitles = () => ({ dashboard: 'Resumen general', services: 'Servicios y reparaciones', reportes: 'Análisis financiero', pos: 'Terminal de venta', productos: 'Inventario de productos', personas: 'Clientes y empleados', 'listas-precios': 'Precios especiales', empresas: 'Empresas del sistema', locales: 'Sucursales y locales', usuarios: 'Gestión de accesos', configuracion: 'Ajustes del sistema', sandbox: 'Entorno de pruebas', profile: 'Mi cuenta', 'importar-productos': 'Importación masiva' });
-  $id('topbar-title').textContent = titles()[page] || page;
-  $id('topbar-subtitle').textContent = subtitles()[page] || '';
-  if (page === 'dashboard') refreshDashboard();
-  if (page === 'services') renderTable();
-  if (page === 'reportes') loadReportes();
-  if (page === 'profile') loadProfile();
-  if (page === 'usuarios') loadUsuarios();
-  if (page === 'empresas') loadEmpresas();
-  if (page === 'locales') loadLocales();
-  if (page === 'configuracion') { loadConfiguracion(); loadRolesConfig(); loadTiposProductos(); loadNivelesPrecios(); loadEstadosConfig(); loadConceptosCobro(); }
-  if (page === 'sandbox') loadSandboxes();
-  if (page === 'pos') loadPOS();
-  if (page === 'productos') loadProductos();
-  if (page === 'clientes') loadClientes();
-  if (page === 'personas') {
-    const isEmpleado = currentUserData?.tipo === 'empleado';
-    const empTab = $id('prstab-empleado');
-    if (empTab) empTab.style.display = isEmpleado ? 'none' : '';
-    setPersonasRolTab(isEmpleado ? 'cliente' : 'empleado');
-  }
-  if (page === 'listas-precios') loadListasPrecios();
-  if (page === 'importar-productos') initImportPage();
+  const titleEl = $id('topbar-title'); if (titleEl) titleEl.textContent = titles()[page] || page;
+  const subEl = $id('topbar-subtitle'); if (subEl) subEl.textContent = subtitles()[page] || '';
+  try {
+    if (page === 'dashboard') refreshDashboard();
+    else if (page === 'services') renderTable();
+    else if (page === 'reportes') loadReportes();
+    else if (page === 'profile') loadProfile();
+    else if (page === 'usuarios') loadUsuarios();
+    else if (page === 'empresas') loadEmpresas();
+    else if (page === 'locales') loadLocales();
+    else if (page === 'configuracion') { loadConfiguracion(); loadRolesConfig(); loadTiposProductos(); loadNivelesPrecios(); loadEstadosConfig(); loadConceptosCobro(); }
+    else if (page === 'sandbox') loadSandboxes();
+    else if (page === 'pos') loadPOS();
+    else if (page === 'productos') loadProductos();
+    else if (page === 'clientes') loadClientes();
+    else if (page === 'personas') {
+      const isEmpleado = currentUserData?.tipo === 'empleado';
+      const empTab = $id('prstab-empleado');
+      if (empTab) empTab.style.display = isEmpleado ? 'none' : '';
+      setPersonasRolTab(isEmpleado ? 'cliente' : 'empleado');
+    }
+    else if (page === 'listas-precios') loadListasPrecios();
+    else if (page === 'importar-productos') initImportPage();
+  } catch(e) { console.warn('[goTo] page load error:', page, e); }
 }
 
 // ===== SERVICE MODAL =====
@@ -8026,6 +8160,44 @@ function garantiaBadge(garantia, fechaSalida) {
   return `<div style="display:flex;flex-direction:column;gap:3px;">${valorPill}${statusPill}</div>`;
 }
 
+// ── Sort / per-page helpers ─────────────────────────────────────
+function updateSortIcons(tbodyId, field, dir) {
+  const tbody = $id(tbodyId);
+  if (!tbody) return;
+  const thead = tbody.closest('table')?.querySelector('thead');
+  if (!thead) return;
+  thead.querySelectorAll('th[data-sort]').forEach(th => {
+    const icon = th.querySelector('.sort-icon');
+    if (!icon) return;
+    const active = th.dataset.sort === field;
+    th.classList.toggle('sort-active', active);
+    icon.textContent = active ? (dir === 'asc' ? '↑' : '↓') : '↕';
+  });
+}
+
+function sortByCol(sortObj, tbodyId, field, resetPageFn, loadFn) {
+  if (sortObj.f === field) { sortObj.d = sortObj.d === 'asc' ? 'desc' : 'asc'; }
+  else { sortObj.f = field; sortObj.d = 'asc'; }
+  updateSortIcons(tbodyId, sortObj.f, sortObj.d);
+  resetPageFn();
+  loadFn();
+}
+
+function clientSort(arr, field, dir) {
+  return [...arr].sort((a, b) => {
+    let va = a[field] ?? ''; let vb = b[field] ?? '';
+    const cmp = (typeof va === 'number' && typeof vb === 'number')
+      ? va - vb : String(va).localeCompare(String(vb), 'es', { sensitivity: 'base' });
+    return dir === 'asc' ? cmp : -cmp;
+  });
+}
+
+function perPageSelect(id, defaultVal, resetFn) {
+  const el = $id(id);
+  if (el) el.value = String(defaultVal);
+}
+// ────────────────────────────────────────────────────────────────
+
 async function renderTable() {
   await ensureWaConfig();
   const q = $id('search-input').value;
@@ -8036,7 +8208,8 @@ async function renderTable() {
   const isRoot = currentUserData?.tipo === 'root';
   tableLoading($id('services-tbody'), isRoot ? 12 : 11);
   try {
-    let url = `/servicios?page=${currentPage}&limit=${PER_PAGE}`;
+    PER_PAGE = parseInt($id('srv-per-page')?.value) || PER_PAGE;
+    let url = `/servicios?page=${currentPage}&limit=${PER_PAGE}&sort=${srvSort.f}_${srvSort.d}`;
     if (q) url += '&q=' + encodeURIComponent(q);
     if (estado) url += '&estado=' + encodeURIComponent(estado);
     if (garantia) url += '&garantia=' + encodeURIComponent(garantia);
@@ -8122,6 +8295,7 @@ async function renderTable() {
 }
 
 function filterTable() { currentPage = 1; renderTable(); }
+function sortTable(field) { sortByCol(srvSort, 'services-tbody', field, () => { currentPage = 1; }, renderTable); }
 
 let viewingServiceId = null;
 let viewingServiceData = null;
@@ -8617,7 +8791,7 @@ async function refreshDashboard() {
     const isEmpleado = tipo === 'empleado';
     $id('dash-greeting').style.display    = isEmpleado ? '' : 'none';
     $id('dash-admin-header').style.display = isEmpleado ? 'none' : 'flex';
-    if (tipo === 'root') $id('filter-dash-empresa').style.display = '';
+    if (tipo === 'root') { const _fe = $id('filter-dash-empresa'); if (_fe) _fe.style.display = ''; }
     // Greeting for empleados
     if (isEmpleado) {
       $id('dash-greeting-text').textContent = `Hola, ${currentUserData.nombre?.split(' ')[0]} 👋`;
@@ -8928,31 +9102,49 @@ async function generateReport() {
     else if (end) rangeLabel = `Hasta ${end}`;
     $id('rep-range-label').textContent = rangeLabel;
 
-    const tbody = $id('report-tbody');
-    if (!servicios.length) {
-      tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state"><i class="fa-solid fa-inbox"></i><p>Sin registros</p></div></td></tr>`;
-      return;
-    }
-    tbody.innerHTML = servicios.map(s => {
-      const utilidad = (s.costo_total||0) - (s.costo_refaccion||0);
-      const utilColor = utilidad >= 0 ? 'text-success' : 'text-danger';
-      return `<tr>
-        <td><span class="text-accent fw-bold">${s.folio||'-'}</span></td>
-        <td><div class="fw-bold">${s.cliente_nombre||'-'}</div></td>
-        <td>${s.modelo||'-'}</td>
-        <td><span class="status-pill" style="${getEstadoStyle(s.estado)}">${s.estado||'-'}</span></td>
-        <td>${s.fecha_entrada ? s.fecha_entrada.split('T')[0] : '-'}</td>
-        <td>${s.fecha_salida ? s.fecha_salida.split('T')[0] : '-'}</td>
-        <td class="text-right">${money(s.anticipo)}</td>
-        <td class="text-right text-danger">${money(s.costo_refaccion)}</td>
-        <td class="text-right text-accent fw-bold">${money(s.costo_total)}</td>
-        <td class="text-right ${utilColor} fw-bold">${money(utilidad)}</td>
-      </tr>`;
-    }).join('');
+    reportSrvData = servicios;
+    repSrvPage = 1;
+    renderReporteSrv();
     showToast(`Reporte generado — ${servicios.length} servicios`, 'success');
     // Also load cobros section
     loadCobrosServiciosReporte();
   } catch(e) { showToast(e.message, 'error'); }
+}
+
+function renderReporteSrv() {
+  const perPage = parseInt($id('rep-srv-per-page')?.value) || 25;
+  const sorted = clientSort(reportSrvData, repSrvSort.f, repSrvSort.d);
+  const total = sorted.length;
+  const totalPages = Math.max(1, Math.ceil(total / perPage));
+  if (repSrvPage > totalPages) repSrvPage = totalPages;
+  const slice = perPage >= 9999 ? sorted : sorted.slice((repSrvPage - 1) * perPage, repSrvPage * perPage);
+  const tbody = $id('report-tbody');
+  tbody.innerHTML = slice.length ? slice.map(s => {
+    const utilidad = (s.costo_total||0) - (s.costo_refaccion||0);
+    const utilColor = utilidad >= 0 ? 'text-success' : 'text-danger';
+    return `<tr>
+      <td><span class="text-accent fw-bold">${s.folio||'-'}</span></td>
+      <td><div class="fw-bold">${s.cliente_nombre||'-'}</div></td>
+      <td>${s.modelo||'-'}</td>
+      <td><span class="status-pill" style="${getEstadoStyle(s.estado)}">${s.estado||'-'}</span></td>
+      <td>${s.fecha_entrada ? s.fecha_entrada.split('T')[0] : '-'}</td>
+      <td>${s.fecha_salida ? s.fecha_salida.split('T')[0] : '-'}</td>
+      <td class="text-right">${money(s.anticipo)}</td>
+      <td class="text-right text-danger">${money(s.costo_refaccion)}</td>
+      <td class="text-right text-accent fw-bold">${money(s.costo_total)}</td>
+      <td class="text-right ${utilColor} fw-bold">${money(utilidad)}</td>
+    </tr>`;
+  }).join('') : `<tr><td colspan="10"><div class="empty-state"><i class="fa-solid fa-chart-bar"></i><p>Sin registros</p></div></td></tr>`;
+  updateSortIcons('report-tbody', repSrvSort.f, repSrvSort.d);
+  const pag = $id('rep-srv-pagination');
+  if (pag) {
+    pag.style.display = total > 0 ? 'flex' : 'none';
+    const from = Math.min((repSrvPage - 1) * perPage + 1, total);
+    const to   = Math.min(repSrvPage * perPage, total);
+    const info = $id('rep-srv-page-info'); if (info) info.textContent = `${from}–${to} de ${total}`;
+    const prev = $id('rep-srv-btn-prev'); if (prev) prev.disabled = repSrvPage <= 1;
+    const next = $id('rep-srv-btn-next'); if (next) next.disabled = repSrvPage >= totalPages;
+  }
 }
 
 function exportCSV() {
@@ -9155,7 +9347,8 @@ async function loadUsuarios() {
     const uLoc  = $id('filter-usuarios-local')?.value;
     const uTipo = $id('filter-usuarios-tipo')?.value;
     const uQ    = $id('filter-usuarios-q')?.value?.trim();
-    const uParams = [`page=${usuariosPage}`, `limit=${USUARIOS_PER_PAGE}`];
+    USUARIOS_PER_PAGE = parseInt($id('usr-per-page')?.value) || USUARIOS_PER_PAGE;
+    const uParams = [`page=${usuariosPage}`, `limit=${USUARIOS_PER_PAGE}`, `sort=${usrSort.f}_${usrSort.d}`];
     if (uEmp)  uParams.push('empresa_id=' + uEmp);
     if (uLoc)  uParams.push('local_id=' + uLoc);
     if (uTipo) uParams.push('tipo=' + uTipo);
@@ -9463,7 +9656,9 @@ function closePermisosModal() { $id('permisos-modal').classList.remove('open'); 
 async function loadEmpresas() {
   try {
     tableLoading($id('empresas-tbody'), 8);
-    const res = await api('GET', `/empresas?page=${empresasPage}&limit=${EMPRESAS_PER_PAGE}`);
+    EMPRESAS_PER_PAGE = parseInt($id('emp-per-page')?.value) || EMPRESAS_PER_PAGE;
+    updateSortIcons('empresas-tbody', empSort.f, empSort.d);
+    const res = await api('GET', `/empresas?page=${empresasPage}&limit=${EMPRESAS_PER_PAGE}&sort=${empSort.f}_${empSort.d}`);
     const empresas = res.data || [];
     const total = res.total ?? empresas.length;
     const isRoot = currentUserData?.tipo === 'root';
@@ -9600,7 +9795,9 @@ async function askDeleteEmpresa(id) {
 async function loadLocales() {
   try {
     const isRoot = currentUserData?.tipo === 'root';
-    const params = [`page=${localesPage}`, `limit=${LOCALES_PER_PAGE}`];
+    LOCALES_PER_PAGE = parseInt($id('loc-per-page')?.value) || LOCALES_PER_PAGE;
+    updateSortIcons('locales-tbody', locSort.f, locSort.d);
+    const params = [`page=${localesPage}`, `limit=${LOCALES_PER_PAGE}`, `sort=${locSort.f}_${locSort.d}`];
     const filterSel = $id('filter-empresa-locales');
 
     if (isRoot) {
@@ -10021,29 +10218,34 @@ async function loadPlantillas() {
       const empId = $id('config-empresa-select').value;
       if (empId) url += '?empresa_id=' + empId;
     }
-    const list = await api('GET', url);
-    const tbody = $id('plantillas-tbody');
-    const table = $id('plantillas-table');
-    const empty = $id('plantillas-empty');
-
-    if (list.length === 0) {
-      table.style.display = 'none';
-      empty.style.display = '';
-      return;
-    }
-    table.style.display = '';
-    empty.style.display = 'none';
-
-    tbody.innerHTML = list.map(p => `<tr>
-      <td><strong>${p.nombre}</strong></td>
-      <td style="color:var(--text2);">${p.ticket_titulo || 'TICKET DE SERVICIO'}</td>
-      <td style="color:var(--text3);font-size:12px;">${p.fecha_creacion ? p.fecha_creacion.split('T')[0] : ''}</td>
-      <td class="td-actions" style="text-align:center;">
-        <button class="btn-icon" title="Editar" onclick="openPlantillaModal(${p.id})"><i class="fa-solid fa-pen"></i></button>
-        <button class="btn-icon btn-danger" title="Eliminar" onclick="deletePlantilla(${p.id}, '${p.nombre.replace(/'/g, "\\'")}')"><i class="fa-solid fa-trash"></i></button>
-      </td>
-    </tr>`).join('');
+    plantillasData = await api('GET', url);
+    renderPlantillas();
   } catch(e) { /* silent */ }
+}
+
+function renderPlantillas() {
+  const sorted = clientSort(plantillasData, pltSort.f, pltSort.d);
+  const table = $id('plantillas-table');
+  const empty = $id('plantillas-empty');
+  const tbody = $id('plantillas-tbody');
+  if (!tbody) return;
+  if (!sorted.length) {
+    if (table) table.style.display = 'none';
+    if (empty) empty.style.display = '';
+    return;
+  }
+  if (table) table.style.display = '';
+  if (empty) empty.style.display = 'none';
+  tbody.innerHTML = sorted.map(p => `<tr>
+    <td><strong>${p.nombre}</strong></td>
+    <td style="color:var(--text2);">${p.ticket_titulo || 'TICKET DE SERVICIO'}</td>
+    <td style="color:var(--text3);font-size:12px;">${p.fecha_creacion ? p.fecha_creacion.split('T')[0] : ''}</td>
+    <td class="td-actions" style="text-align:center;">
+      <button class="btn-icon" title="Editar" onclick="openPlantillaModal(${p.id})"><i class="fa-solid fa-pen"></i></button>
+      <button class="btn-icon btn-danger" title="Eliminar" onclick="deletePlantilla(${p.id}, '${p.nombre.replace(/'/g, "\\'")}')"><i class="fa-solid fa-trash"></i></button>
+    </td>
+  </tr>`).join('');
+  updateSortIcons('plantillas-tbody', pltSort.f, pltSort.d);
 }
 
 async function openPlantillaModal(id = null) {
@@ -10417,7 +10619,8 @@ function printTicket() {
 
 // ===== AUDITORÍA =====
 let logsPage = 1;
-const LOGS_PER_PAGE = 50;
+let LOGS_PER_PAGE = 50;
+const logsSort = { f: 'fecha', d: 'desc' };
 
 async function loadLogs() {
   const q = ($id('log-q') || {}).value || '';
@@ -10425,6 +10628,7 @@ async function loadLogs() {
   const accion = ($id('log-accion') || {}).value || '';
   const desde = ($id('log-desde') || {}).value || '';
   const hasta = ($id('log-hasta') || {}).value || '';
+  LOGS_PER_PAGE = parseInt($id('logs-per-page')?.value) || LOGS_PER_PAGE;
   const params = new URLSearchParams({ page: logsPage, limit: LOGS_PER_PAGE });
   if (q) params.set('q', q);
   if (modulo) params.set('modulo', modulo);
@@ -11335,6 +11539,7 @@ async function loadProductos() {
   }
 
   try {
+    PROD_LIMIT = parseInt($id('prod-per-page')?.value) || PROD_LIMIT;
     let url = `/productos?page=${productosPage}&limit=${PROD_LIMIT}`;
     if (q)                    url += '&q='          + encodeURIComponent(q);
     if (empFilter?.value)     url += '&empresa_id=' + empFilter.value;
@@ -12401,13 +12606,99 @@ function closeClienteDetailModal() {
   $id('cliente-detail-modal').classList.remove('open');
 }
 
-// ===== IMPORTAR PRODUCTOS =====
+// ===== IMPORTAR (PRODUCTOS / CLIENTES / SERVICIOS) =====
 let importPreviewRows = [];
+let importTipo = 'productos';
+
+const IMP_COLS = {
+  productos: `
+    <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+      <i class="fa-solid fa-circle-info" style="color:var(--accent);"></i> Columnas reconocidas — Productos
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;">
+      <span style="font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:3px 8px;"><strong>nombre</strong> <span style="color:var(--danger);">*</span></span>
+      <span style="font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:3px 8px;"><strong>sku</strong> / clave / referencia</span>
+      <span style="font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:3px 8px;"><strong>codigo</strong> / barcode / ean</span>
+      <span style="font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:3px 8px;"><strong>tipo</strong> / categoria</span>
+      <span style="font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:3px 8px;"><strong>compra</strong> / costo</span>
+      <span style="font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:3px 8px;"><strong>venta</strong> / precio <span style="color:var(--danger);">*</span></span>
+      <span style="font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:3px 8px;"><strong>existencia</strong> / stock / qty</span>
+    </div>
+    <div style="margin-top:8px;font-size:11px;color:var(--text3);">La primera fila debe ser el encabezado. Se detecta por código de barras, SKU o nombre para determinar si es nuevo o actualización.</div>`,
+  clientes: `
+    <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+      <i class="fa-solid fa-circle-info" style="color:var(--accent);"></i> Columnas reconocidas — Clientes
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;">
+      <span style="font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:3px 8px;"><strong>nombre</strong> <span style="color:var(--danger);">*</span></span>
+      <span style="font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:3px 8px;"><strong>telefono</strong> / celular / whatsapp</span>
+      <span style="font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:3px 8px;"><strong>correo</strong> / email</span>
+      <span style="font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:3px 8px;"><strong>direccion</strong> / domicilio</span>
+      <span style="font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:3px 8px;"><strong>notas</strong> / observaciones</span>
+      <span style="font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:3px 8px;"><strong>tipo_cliente</strong> / tipo / rol</span>
+    </div>
+    <div style="margin-top:8px;font-size:11px;color:var(--text3);">Se detecta cliente existente por correo, teléfono o nombre.</div>`,
+  servicios: `
+    <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+      <i class="fa-solid fa-circle-info" style="color:var(--accent);"></i> Columnas reconocidas — Servicios
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;">
+      <span style="font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:3px 8px;"><strong>cliente</strong> <span style="color:var(--danger);">*</span></span>
+      <span style="font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:3px 8px;"><strong>modelo</strong> / equipo <span style="color:var(--danger);">*</span></span>
+      <span style="font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:3px 8px;"><strong>falla</strong> / problema <span style="color:var(--danger);">*</span></span>
+      <span style="font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:3px 8px;"><strong>descripcion</strong> / detalle</span>
+      <span style="font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:3px 8px;"><strong>estado</strong></span>
+      <span style="font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:3px 8px;"><strong>fecha_entrada</strong> / fecha</span>
+      <span style="font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:3px 8px;"><strong>costo_total</strong> / precio / total</span>
+      <span style="font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:3px 8px;"><strong>anticipo</strong> / adelanto</span>
+      <span style="font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:3px 8px;"><strong>num_serie</strong> / serie / imei / sn</span>
+      <span style="font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:3px 8px;"><strong>garantia</strong></span>
+    </div>
+    <div style="margin-top:8px;font-size:11px;color:var(--text3);">Se detecta duplicado por número de serie. Si el cliente no existe se crea automáticamente.</div>`,
+};
+
+function setImportTipo(tipo) {
+  importTipo = tipo;
+  resetImport();
+  // Update active tab styling
+  document.querySelectorAll('.imp-tipo-tab').forEach(t => {
+    t.style.background = 'transparent';
+    t.style.color = 'var(--text)';
+    t.style.fontWeight = '500';
+  });
+  const activeTab = $id('imp-tab-' + tipo);
+  if (activeTab) {
+    activeTab.style.background = 'var(--accent)';
+    activeTab.style.color = '#fff';
+    activeTab.style.fontWeight = '700';
+  }
+  // Update column reference
+  const colsRef = $id('imp-cols-ref');
+  if (colsRef) colsRef.innerHTML = IMP_COLS[tipo] || '';
+  // Update local hint
+  const hint = $id('imp-local-hint');
+  const hintMap = { productos: 'Los productos importados se asignarán a este local.', clientes: 'Los clientes importados se asignarán a este local.', servicios: 'Los servicios importados se asignarán a este local.' };
+  if (hint) hint.textContent = hintMap[tipo] || '';
+  // Update topbar title
+  const titleMap = { productos: 'Importar productos', clientes: 'Importar clientes', servicios: 'Importar servicios' };
+  const titleEl = $id('topbar-title'); if (titleEl) titleEl.textContent = titleMap[tipo] || 'Importar';
+  // Update volver button
+  const volverBtn = $id('imp-volver-btn');
+  const destinations = { productos: 'productos', clientes: 'clientes', servicios: 'services' };
+  if (volverBtn) volverBtn.setAttribute('onclick', `goTo('${destinations[tipo] || 'productos'}')`);
+}
 
 function initImportPage() {
-  resetImport();
-  // Populate local selector for admin/root
   const tipo = currentUserData?.tipo;
+  // Show tabs based on permissions
+  const canProducts = tipo === 'admin' || tipo === 'root' || hasPermiso('importar_productos','crear');
+  const canClientes = tipo === 'admin' || tipo === 'root' || hasPermiso('clientes','crear');
+  const canServicios = tipo === 'admin' || tipo === 'root' || hasPermiso('servicios','crear');
+  const tabP = $id('imp-tab-productos'); if (tabP) tabP.style.display = canProducts ? '' : 'none';
+  const tabC = $id('imp-tab-clientes');  if (tabC) tabC.style.display = canClientes ? '' : 'none';
+  const tabS = $id('imp-tab-servicios'); if (tabS) tabS.style.display = canServicios ? '' : 'none';
+
+  // Populate local selector for admin/root
   const localGroup = $id('imp-local-group');
   if (tipo === 'admin' || tipo === 'root') {
     localGroup.style.display = '';
@@ -12421,23 +12712,22 @@ function initImportPage() {
         opt.textContent = l.nombre_local;
         sel.appendChild(opt);
       });
-      // Pre-select current local
       if (currentUserData.local_id) sel.value = currentUserData.local_id;
     }).catch(() => {});
   } else {
     localGroup.style.display = 'none';
   }
+  setImportTipo(importTipo);
 }
 
 function resetImport() {
   importPreviewRows = [];
-  $id('imp-step-upload').style.display = '';
-  $id('imp-step-preview').style.display = 'none';
-  $id('imp-step-result').style.display = 'none';
-  $id('imp-upload-error').style.display = 'none';
-  $id('imp-upload-loading').style.display = 'none';
-  const fileInput = $id('imp-file-input');
-  if (fileInput) fileInput.value = '';
+  const su = $id('imp-step-upload');     if (su) su.style.display = '';
+  const sp = $id('imp-step-preview');    if (sp) sp.style.display = 'none';
+  const sr = $id('imp-step-result');     if (sr) sr.style.display = 'none';
+  const ue = $id('imp-upload-error');    if (ue) ue.style.display = 'none';
+  const ul = $id('imp-upload-loading');  if (ul) ul.style.display = 'none';
+  const fi = $id('imp-file-input');      if (fi) fi.value = '';
 }
 
 async function handleImportFileDrop(file) {
@@ -12453,7 +12743,8 @@ async function handleImportFileDrop(file) {
   try {
     const base64 = await fileToBase64(file);
     const localId = $id('imp-local-id')?.value || null;
-    const data = await api('POST', '/productos/importar/preview', {
+    const endpoint = `/${importTipo}/importar/preview`;
+    const data = await api('POST', endpoint, {
       fileBase64: base64.split(',')[1],
       fileName: file.name,
       local_id: localId ? Number(localId) : undefined,
@@ -12492,9 +12783,9 @@ function renderImportPreview(data) {
 
   const actionable = stats.nuevo + stats.actualizar;
   $id('btn-confirmar-import').disabled = actionable === 0;
-  $id('btn-confirmar-import').title = actionable === 0 ? 'No hay productos nuevos o por actualizar' : '';
+  const noun = importTipo === 'clientes' ? 'clientes' : importTipo === 'servicios' ? 'servicios' : 'productos';
+  $id('btn-confirmar-import').title = actionable === 0 ? `No hay ${noun} nuevos o por actualizar` : '';
 
-  // Show warning for unrecognized columns
   const warnEl = $id('imp-ignored-headers-warn');
   if (warnEl) {
     if (ignoredHeaders && ignoredHeaders.length > 0) {
@@ -12505,40 +12796,82 @@ function renderImportPreview(data) {
     }
   }
 
+  // Update table headers for current tipo
+  const thead = $id('imp-preview-thead');
+  if (thead) thead.innerHTML = getImportTableHeaders(importTipo);
+
   renderImportTable(rows);
   $id('imp-step-upload').style.display = 'none';
   $id('imp-step-preview').style.display = '';
 
-  // Reset filter
   document.querySelectorAll('.imp-filter-btn').forEach(b => b.classList.remove('active'));
   document.querySelector('.imp-filter-btn[data-filter="all"]')?.classList.add('active');
 }
 
+function getImportTableHeaders(tipo) {
+  const th = (t, w) => `<th${w ? ` style="width:${w}"` : ''}>${t}</th>`;
+  if (tipo === 'clientes') {
+    return `<tr>${th('Estado','110px')}${th('Nombre')}${th('Teléfono')}${th('Correo')}${th('Dirección')}${th('Tipo cliente')}${th('Cambios')}</tr>`;
+  }
+  if (tipo === 'servicios') {
+    return `<tr>${th('Estado','110px')}${th('Cliente')}${th('Modelo')}${th('Falla')}${th('N° Serie')}${th('Fecha entrada')}${th('Costo total')}${th('Anticipo')}${th('Cambios')}</tr>`;
+  }
+  return `<tr>${th('Estado','110px')}${th('Nombre')}${th('SKU')}${th('Código')}${th('Tipo')}${th('Compra')}${th('Venta')}${th('Existencia')}${th('Cambios')}</tr>`;
+}
+
 function renderImportTable(rows) {
   const tbody = $id('imp-preview-tbody');
+  const cols = importTipo === 'clientes' ? 7 : importTipo === 'servicios' ? 9 : 9;
   if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--text3);padding:32px;">Sin filas para mostrar</td></tr>';
+    tbody.innerHTML = `<tr><td colspan="${cols}" style="text-align:center;color:var(--text3);padding:32px;">Sin filas para mostrar</td></tr>`;
     return;
   }
-  tbody.innerHTML = rows.map(r => {
-    const badgeClass = r.status;
-    const badgeText = { nuevo:'Nuevo', actualizar:'Actualizar', sin_cambio:'Sin cambio', error:'Error' }[r.status];
-    const changesHtml = r.changes
-      ? Object.keys(r.changes).map(k => `<span class="imp-change-pill">${k}</span>`).join('')
-      : r.error ? `<span style="font-size:11px;color:var(--danger);">${escHtml(r.error)}</span>` : '';
-    const rowStyle = r.status === 'sin_cambio' ? 'opacity:.55;' : r.status === 'error' ? 'background:rgba(255,71,87,.04);' : '';
+  tbody.innerHTML = rows.map(r => renderImportRow(r)).join('');
+}
+
+function renderImportRow(r) {
+  const badgeText = { nuevo:'Nuevo', actualizar:'Actualizar', sin_cambio:'Sin cambio', error:'Error' }[r.status];
+  const rowStyle = r.status === 'sin_cambio' ? 'opacity:.55;' : r.status === 'error' ? 'background:rgba(255,71,87,.04);' : '';
+  const changesHtml = r.changes
+    ? Object.keys(r.changes).map(k => `<span class="imp-change-pill">${k}</span>`).join('')
+    : r.error ? `<span style="font-size:11px;color:var(--danger);">${escHtml(r.error)}</span>` : '';
+  const badge = `<span class="imp-badge ${r.status}">${badgeText}</span>`;
+  if (importTipo === 'clientes') {
     return `<tr style="${rowStyle}" data-status="${r.status}">
-      <td><span class="imp-badge ${badgeClass}">${badgeText}</span></td>
+      <td>${badge}</td>
       <td style="font-weight:500;">${escHtml(r.nombre || '—')}</td>
-      <td style="font-size:12px;color:var(--text2);">${escHtml(r.sku || '—')}</td>
-      <td style="font-size:12px;color:var(--text2);">${escHtml(r.codigo || '—')}</td>
-      <td style="font-size:12px;">${escHtml(r.tipo || '—')}</td>
-      <td style="font-size:12px;">${r.compra ? money(r.compra) : '—'}</td>
-      <td style="font-size:13px;font-weight:600;">${r.venta ? money(r.venta) : '—'}</td>
-      <td style="font-size:12px;">${r.existencia ?? 0}</td>
+      <td style="font-size:12px;color:var(--text2);">${escHtml(r.telefono || '—')}</td>
+      <td style="font-size:12px;color:var(--text2);">${escHtml(r.correo || '—')}</td>
+      <td style="font-size:12px;">${escHtml(r.direccion || '—')}</td>
+      <td style="font-size:12px;">${escHtml(r.tipo_cliente || '—')}</td>
       <td>${changesHtml}</td>
     </tr>`;
-  }).join('');
+  }
+  if (importTipo === 'servicios') {
+    return `<tr style="${rowStyle}" data-status="${r.status}">
+      <td>${badge}</td>
+      <td style="font-weight:500;">${escHtml(r.cliente || '—')}</td>
+      <td style="font-size:12px;">${escHtml(r.modelo || '—')}</td>
+      <td style="font-size:12px;color:var(--text2);">${escHtml(r.falla || '—')}</td>
+      <td style="font-size:12px;color:var(--text2);">${escHtml(r.num_serie || '—')}</td>
+      <td style="font-size:12px;">${r.fecha_entrada || '—'}</td>
+      <td style="font-size:13px;font-weight:600;">${r.costo_total ? money(r.costo_total) : '—'}</td>
+      <td style="font-size:12px;">${r.anticipo ? money(r.anticipo) : '—'}</td>
+      <td>${changesHtml}</td>
+    </tr>`;
+  }
+  // productos
+  return `<tr style="${rowStyle}" data-status="${r.status}">
+    <td>${badge}</td>
+    <td style="font-weight:500;">${escHtml(r.nombre || '—')}</td>
+    <td style="font-size:12px;color:var(--text2);">${escHtml(r.sku || '—')}</td>
+    <td style="font-size:12px;color:var(--text2);">${escHtml(r.codigo || '—')}</td>
+    <td style="font-size:12px;">${escHtml(r.tipo || '—')}</td>
+    <td style="font-size:12px;">${r.compra ? money(r.compra) : '—'}</td>
+    <td style="font-size:13px;font-weight:600;">${r.venta ? money(r.venta) : '—'}</td>
+    <td style="font-size:12px;">${r.existencia ?? 0}</td>
+    <td>${changesHtml}</td>
+  </tr>`;
 }
 
 function filterImportPreview(filter, btn) {
@@ -12556,7 +12889,8 @@ async function confirmarImport() {
   try {
     const localId = $id('imp-local-id')?.value || null;
     const toSend = importPreviewRows.filter(r => r.status === 'nuevo' || r.status === 'actualizar');
-    const result = await api('POST', '/productos/importar/confirmar', {
+    const endpoint = `/${importTipo}/importar/confirmar`;
+    const result = await api('POST', endpoint, {
       rows: toSend,
       local_id: localId ? Number(localId) : undefined,
     });
@@ -12573,12 +12907,13 @@ function showImportResult(result) {
   $id('imp-step-result').style.display = '';
   const hasErrors = result.errors?.length > 0;
   const allErrors = result.total === 0 && hasErrors;
+  const noun = importTipo === 'clientes' ? 'clientes' : importTipo === 'servicios' ? 'servicios' : 'productos';
   $id('imp-result-icon').innerHTML = allErrors
     ? '<i class="fa-solid fa-circle-xmark" style="color:var(--danger);"></i>'
     : '<i class="fa-solid fa-circle-check" style="color:#2ed573;"></i>';
   $id('imp-result-title').textContent = allErrors ? 'Importación fallida' : 'Importación completada';
   $id('imp-result-desc').innerHTML =
-    `<strong style="color:#2ed573;">${result.created}</strong> productos creados &nbsp;·&nbsp; ` +
+    `<strong style="color:#2ed573;">${result.created}</strong> ${noun} creados &nbsp;·&nbsp; ` +
     `<strong style="color:#f0a500;">${result.updated}</strong> actualizados` +
     (hasErrors ? ` &nbsp;·&nbsp; <strong style="color:var(--danger);">${result.errors.length}</strong> errores` : '');
   const errDiv = $id('imp-result-errors');
@@ -12588,16 +12923,41 @@ function showImportResult(result) {
   } else {
     errDiv.style.display = 'none';
   }
+  // Update "Ver X" button
+  const verBtn = $id('imp-result-ver-btn');
+  if (verBtn) {
+    const icons = { productos: 'fa-boxes-stacked', clientes: 'fa-users', servicios: 'fa-screwdriver-wrench' };
+    const labels = { productos: 'Ver productos', clientes: 'Ver clientes', servicios: 'Ver servicios' };
+    const destinations = { productos: 'productos', clientes: 'clientes', servicios: 'services' };
+    verBtn.innerHTML = `<i class="fa-solid ${icons[importTipo]}"></i> ${labels[importTipo]}`;
+    verBtn.setAttribute('onclick', `goTo('${destinations[importTipo]}')`);
+  }
 }
 
 function downloadPlantillaImport() {
-  const header = 'nombre,sku,codigo,tipo,compra,venta,existencia';
-  const example = 'Cable USB-C,SKU001,7501234567890,Accesorios,45,89,10';
-  const csv = header + '\n' + example;
+  const templates = {
+    productos: {
+      header: 'nombre,sku,codigo,tipo,compra,venta,existencia',
+      example: 'Cable USB-C,SKU001,7501234567890,Accesorios,45,89,10',
+      filename: 'plantilla_productos.csv',
+    },
+    clientes: {
+      header: 'nombre,telefono,correo,direccion,notas,tipo_cliente',
+      example: 'Juan Pérez,5512345678,juan@email.com,Calle Reforma 10,,regular',
+      filename: 'plantilla_clientes.csv',
+    },
+    servicios: {
+      header: 'cliente,modelo,falla,descripcion,estado,fecha_entrada,costo_total,anticipo,num_serie,garantia',
+      example: 'Juan Pérez,iPhone 12,Pantalla rota,Pantalla con rayaduras,Recibido,2024-01-15,800,200,SN123456789,30 días',
+      filename: 'plantilla_servicios.csv',
+    },
+  };
+  const t = templates[importTipo] || templates.productos;
+  const csv = t.header + '\n' + t.example;
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = 'plantilla_productos.csv';
+  a.href = url; a.download = t.filename;
   a.click();
   URL.revokeObjectURL(url);
 }
@@ -12608,7 +12968,8 @@ async function loadListasPrecios() {
   const isRoot = currentUserData?.tipo === 'root';
   const empresaId = $id('filter-listas-empresa')?.value;
 
-  let url = `/listas-precios?page=${listasPage}&limit=${LISTAS_PER_PAGE}`;
+  LISTAS_PER_PAGE = parseInt($id('listas-per-page')?.value) || LISTAS_PER_PAGE;
+  let url = `/listas-precios?page=${listasPage}&limit=${LISTAS_PER_PAGE}&sort=${listSort.f}_${listSort.d}`;
   if (q) url += '&q=' + encodeURIComponent(q);
   if (isRoot && empresaId) url += '&empresa_id=' + empresaId;
 
@@ -12831,7 +13192,7 @@ let rvCurrentPage = 1;
 let rvTotalPages  = 1;
 let rvTotalRows   = 0;
 let rvCurrentVentaId = null;
-const RV_LIMIT = 25;
+let RV_LIMIT = 25;
 
 function onRvEmpresaChange() {
   rvCurrentPage = 1;
@@ -12865,7 +13226,8 @@ async function generateReporteVentas() {
   const tbody  = $id('rv-tbody');
   tableLoading(tbody, 7);
 
-  let url = `/ventas?page=${rvCurrentPage}&limit=${RV_LIMIT}`;
+  RV_LIMIT = parseInt($id('rv-per-page')?.value) || RV_LIMIT;
+  let url = `/ventas?page=${rvCurrentPage}&limit=${RV_LIMIT}&sort=${rvSort.f}_${rvSort.d}`;
   if (desde)  url += `&desde=${desde}`;
   if (hasta)  url += `&hasta=${hasta}`;
   if (metodo) url += `&metodo_pago=${metodo}`;
@@ -13151,41 +13513,60 @@ async function generateReporteCortes() {
     difEl.textContent = money(diferencia);
     difEl.style.color = diferencia < 0 ? 'var(--danger)' : diferencia > 0 ? 'var(--success)' : '';
 
-    if (data.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state"><i class="fa-solid fa-scissors"></i><p>Sin cortes en el período seleccionado</p></div></td></tr>`;
-      return;
-    }
-
-    tbody.innerHTML = data.map(c => {
-      const apertura = c.fecha_apertura
-        ? new Date(c.fecha_apertura).toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' }) : '—';
-      const cierre = c.fecha_cierre
-        ? new Date(c.fecha_cierre).toLocaleTimeString('es-MX')
-        : `<span style="color:var(--warning);">Abierto</span>`;
-      const diff = (c.diferencia !== null && c.diferencia !== undefined) ? c.diferencia : null;
-      const diffHtml = diff !== null
-        ? `<span style="color:${diff < 0 ? 'var(--danger)' : diff > 0 ? 'var(--success)' : 'var(--text2)'};font-weight:600;">${money(diff)}</span>`
-        : '<span style="color:var(--text3);">—</span>';
-      return `<tr>
-        <td style="font-size:13px;">${c.usuario_nombre ? escHtml(c.usuario_nombre) : '—'}<br><small style="color:var(--text3);">${c.nombre_local ? escHtml(c.nombre_local) : ''}</small></td>
-        <td style="font-size:12px;color:var(--text2);">${apertura}</td>
-        <td style="font-size:12px;color:var(--text2);">${c.fecha_apertura ? new Date(c.fecha_apertura).toLocaleTimeString('es-MX') : '—'}</td>
-        <td style="font-size:12px;color:var(--text2);">${c.fecha_cierre ? new Date(c.fecha_cierre).toLocaleTimeString('es-MX') : cierre}</td>
-        <td class="text-right" style="font-size:13px;">${money(c.fondo_apertura || 0)}</td>
-        <td class="text-right" style="font-size:13px;color:var(--success);">${money(c.total_ventas || 0)}</td>
-        <td class="text-right" style="font-size:13px;color:var(--danger);">${money(0)}</td>
-        <td class="text-right" style="font-size:13px;">${money((c.fondo_apertura || 0) + (c.total_efectivo || 0))}</td>
-        <td class="text-right" style="font-size:13px;">${c.efectivo_contado !== null && c.efectivo_contado !== undefined ? money(c.efectivo_contado) : '<span style="color:var(--text3);">—</span>'}</td>
-        <td class="text-right">${diffHtml}</td>
-        <td style="text-align:center;">
-          <button class="act-btn" onclick="showCorteDetalle(${c.id})" title="Ver detalle del corte">
-            <i class="fa-solid fa-magnifying-glass"></i>
-          </button>
-        </td>
-      </tr>`;
-    }).join('');
+    reportCortesData = data;
+    rcPage = 1;
+    renderReporteCortes();
   } catch(e) {
-    tbody.innerHTML = `<tr><td colspan="11"><div class="empty-state" style="color:var(--danger);"><i class="fa-solid fa-circle-exclamation"></i><p>${e.message}</p></div></td></tr>`;
+    const tbody = $id('rc-tbody');
+    if (tbody) tbody.innerHTML = `<tr><td colspan="11"><div class="empty-state" style="color:var(--danger);"><i class="fa-solid fa-circle-exclamation"></i><p>${e.message}</p></div></td></tr>`;
+  }
+}
+
+function renderReporteCortes() {
+  const perPage = parseInt($id('rc-per-page')?.value) || 20;
+  const sorted = clientSort(reportCortesData, rcSort.f, rcSort.d);
+  const total = sorted.length;
+  const totalPages = Math.max(1, Math.ceil(total / perPage));
+  if (rcPage > totalPages) rcPage = totalPages;
+  const slice = perPage >= 9999 ? sorted : sorted.slice((rcPage - 1) * perPage, rcPage * perPage);
+  const tbody = $id('rc-tbody');
+  tbody.innerHTML = slice.length ? slice.map(c => {
+    const apertura = c.fecha_apertura
+      ? new Date(c.fecha_apertura).toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' }) : '—';
+    const cierre = c.fecha_cierre
+      ? new Date(c.fecha_cierre).toLocaleTimeString('es-MX')
+      : `<span style="color:var(--warning);">Abierto</span>`;
+    const diff = (c.diferencia !== null && c.diferencia !== undefined) ? c.diferencia : null;
+    const diffHtml = diff !== null
+      ? `<span style="color:${diff < 0 ? 'var(--danger)' : diff > 0 ? 'var(--success)' : 'var(--text2)'};font-weight:600;">${money(diff)}</span>`
+      : '<span style="color:var(--text3);">—</span>';
+    return `<tr>
+      <td style="font-size:13px;">${c.usuario_nombre ? escHtml(c.usuario_nombre) : '—'}<br><small style="color:var(--text3);">${c.nombre_local ? escHtml(c.nombre_local) : ''}</small></td>
+      <td style="font-size:12px;color:var(--text2);">${apertura}</td>
+      <td style="font-size:12px;color:var(--text2);">${c.fecha_apertura ? new Date(c.fecha_apertura).toLocaleTimeString('es-MX') : '—'}</td>
+      <td style="font-size:12px;color:var(--text2);">${c.fecha_cierre ? new Date(c.fecha_cierre).toLocaleTimeString('es-MX') : cierre}</td>
+      <td class="text-right" style="font-size:13px;">${money(c.fondo_apertura || 0)}</td>
+      <td class="text-right" style="font-size:13px;color:var(--success);">${money(c.total_ventas || 0)}</td>
+      <td class="text-right" style="font-size:13px;color:var(--danger);">${money(0)}</td>
+      <td class="text-right" style="font-size:13px;">${money((c.fondo_apertura || 0) + (c.total_efectivo || 0))}</td>
+      <td class="text-right" style="font-size:13px;">${c.efectivo_contado !== null && c.efectivo_contado !== undefined ? money(c.efectivo_contado) : '<span style="color:var(--text3);">—</span>'}</td>
+      <td class="text-right">${diffHtml}</td>
+      <td style="text-align:center;">
+        <button class="act-btn" onclick="showCorteDetalle(${c.id})" title="Ver detalle del corte">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+      </td>
+    </tr>`;
+  }).join('') : `<tr><td colspan="11"><div class="empty-state"><i class="fa-solid fa-scissors"></i><p>Sin cortes en el período seleccionado</p></div></td></tr>`;
+  updateSortIcons('rc-tbody', rcSort.f, rcSort.d);
+  const pag = $id('rc-pagination');
+  if (pag) {
+    pag.style.display = total > 0 ? 'flex' : 'none';
+    const from = Math.min((rcPage - 1) * perPage + 1, total);
+    const to   = Math.min(rcPage * perPage, total);
+    const info = $id('rc-page-info'); if (info) info.textContent = `${from}–${to} de ${total}`;
+    const prev = $id('rc-btn-prev'); if (prev) prev.disabled = rcPage <= 1;
+    const next = $id('rc-btn-next'); if (next) next.disabled = rcPage >= totalPages;
   }
 }
 
@@ -13345,8 +13726,6 @@ async function loadCobrosServiciosReporte() {
     if (hasta) url += (url.includes('?') ? '&' : '?') + 'hasta=' + hasta;
     const res = await api('GET', url);
     const { resumen, pagos } = res;
-    const metLabels = { efectivo:'Efectivo', tarjeta:'Tarjeta', transferencia:'Transferencia', credito:'Crédito' };
-    const concLabels = { saldo:'Saldo', anticipo:'Anticipo', mano_obra:'Mano obra', refaccion:'Refacción', otro:'Otro' };
     const cards = $id('rs-cobros-cards');
     if (cards) {
       cards.style.display = '';
@@ -13357,24 +13736,47 @@ async function loadCobrosServiciosReporte() {
     }
     const countEl = $id('rs-cobros-resumen');
     if (countEl) countEl.textContent = pagos.length + ' cobro' + (pagos.length !== 1 ? 's' : '');
-    if (pagos.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text3);">Sin cobros en el período</td></tr>';
-      return;
-    }
-    tbody.innerHTML = pagos.map(p => `<tr>
-      <td style="font-size:12px;color:var(--text2);">${p.fecha ? new Date(p.fecha).toLocaleString('es-MX', {dateStyle:'short',timeStyle:'short'}) : '—'}</td>
-      <td style="font-weight:600;color:var(--accent);">${escHtml(p.servicio_folio||'—')}</td>
-      <td>${escHtml(p.cliente_nombre||'—')}</td>
-      <td style="font-size:11px;color:var(--text2);">${escHtml(p.modelo||'—')}</td>
-      <td>
-        <span style="font-size:11px;padding:2px 7px;border-radius:10px;background:var(--bg3);color:var(--text2);">${concLabels[p.concepto]||p.concepto||'—'}</span>
-        ${p.fuera_caja ? '<span style="font-size:9px;padding:1px 6px;border-radius:8px;background:rgba(255,165,0,0.15);color:orange;font-weight:700;margin-left:4px;">Fuera de caja</span>' : ''}
-      </td>
-      <td><span class="badge-metodo badge-${p.metodo}">${metLabels[p.metodo]||p.metodo}</span></td>
-      <td class="text-right" style="font-weight:700;color:var(--success);">${money(p.monto)}</td>
-    </tr>`).join('');
+    reportCobrosData = pagos;
+    cobrosPage = 1;
+    renderCobrosReporte();
   } catch(e) {
-    tbody.innerHTML = `<tr><td colspan="7" style="color:var(--danger);text-align:center;padding:16px;">${e.message}</td></tr>`;
+    const tbody = $id('rs-cobros-tbody');
+    if (tbody) tbody.innerHTML = `<tr><td colspan="7" style="color:var(--danger);text-align:center;padding:16px;">${e.message}</td></tr>`;
+  }
+}
+
+function renderCobrosReporte() {
+  const perPage = parseInt($id('cobros-per-page')?.value) || 25;
+  const sorted = clientSort(reportCobrosData, cobrosSort.f, cobrosSort.d);
+  const total = sorted.length;
+  const totalPages = Math.max(1, Math.ceil(total / perPage));
+  if (cobrosPage > totalPages) cobrosPage = totalPages;
+  const slice = perPage >= 9999 ? sorted : sorted.slice((cobrosPage - 1) * perPage, cobrosPage * perPage);
+  const tbody = $id('rs-cobros-tbody');
+  if (!tbody) return;
+  const metLabels = { efectivo:'Efectivo', tarjeta:'Tarjeta', transferencia:'Transferencia', credito:'Crédito' };
+  const concLabels = { saldo:'Saldo', anticipo:'Anticipo', mano_obra:'Mano obra', refaccion:'Refacción', otro:'Otro' };
+  tbody.innerHTML = slice.length ? slice.map(p => `<tr>
+    <td style="font-size:12px;color:var(--text2);">${p.fecha ? new Date(p.fecha).toLocaleString('es-MX', {dateStyle:'short',timeStyle:'short'}) : '—'}</td>
+    <td style="font-weight:600;color:var(--accent);">${escHtml(p.servicio_folio||'—')}</td>
+    <td>${escHtml(p.cliente_nombre||'—')}</td>
+    <td style="font-size:11px;color:var(--text2);">${escHtml(p.modelo||'—')}</td>
+    <td>
+      <span style="font-size:11px;padding:2px 7px;border-radius:10px;background:var(--bg3);color:var(--text2);">${concLabels[p.concepto]||p.concepto||'—'}</span>
+      ${p.fuera_caja ? '<span style="font-size:9px;padding:1px 6px;border-radius:8px;background:rgba(255,165,0,0.15);color:orange;font-weight:700;margin-left:4px;">Fuera de caja</span>' : ''}
+    </td>
+    <td><span class="badge-metodo badge-${p.metodo}">${metLabels[p.metodo]||p.metodo}</span></td>
+    <td class="text-right" style="font-weight:700;color:var(--success);">${money(p.monto)}</td>
+  </tr>`).join('') : '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text3);">Sin cobros en el período</td></tr>';
+  updateSortIcons('rs-cobros-tbody', cobrosSort.f, cobrosSort.d);
+  const pag = $id('cobros-pagination');
+  if (pag) {
+    pag.style.display = total > 0 ? 'flex' : 'none';
+    const from = Math.min((cobrosPage - 1) * perPage + 1, total);
+    const to   = Math.min(cobrosPage * perPage, total);
+    const info = $id('cobros-page-info'); if (info) info.textContent = `${from}–${to} de ${total}`;
+    const prev = $id('cobros-btn-prev'); if (prev) prev.disabled = cobrosPage <= 1;
+    const next = $id('cobros-btn-next'); if (next) next.disabled = cobrosPage >= totalPages;
   }
 }
 
@@ -13408,52 +13810,70 @@ async function loadReporteCreditos() {
 }
 
 function renderCreditosTable(data) {
+  if (data !== undefined) rcrFilteredData = data;
   const tbody = $id('rcr-tbody');
   if (!tbody) return;
+  const perPage = parseInt($id('rcr-per-page')?.value) || 20;
+  const sorted = clientSort(rcrFilteredData, rcrSort.f, rcrSort.d);
+  const total = sorted.length;
+  const totalPages = Math.max(1, Math.ceil(total / perPage));
+  if (rcrPage > totalPages) rcrPage = totalPages;
+  const slice = perPage >= 9999 ? sorted : sorted.slice((rcrPage - 1) * perPage, rcrPage * perPage);
   const canFinalizar = currentUserData?.tipo === 'admin' || currentUserData?.tipo === 'root' || hasPermiso('reportes', 'borrar');
-  if (!data.length) {
+  if (!slice.length) {
     tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><i class="fa-solid fa-hand-holding-dollar"></i><p>Sin créditos pendientes</p><span style="font-size:13px;color:var(--text3);">Todas las ventas están al corriente</span></div></td></tr>';
-    return;
-  }
-  tbody.innerHTML = data.map(v => {
-    const fecha = new Date(v.fecha).toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' });
-    const diasPendiente = Math.floor((Date.now() - new Date(v.fecha).getTime()) / 86400000);
-    const diasColor = diasPendiente > 7 ? 'var(--danger)' : diasPendiente > 3 ? 'var(--accent2)' : 'var(--text2)';
-    return `<tr>
-      <td class="col-priority-1">
-        <span class="text-accent fw-bold">${escHtml(v.folio_venta)}</span>
-        <div style="font-size:11px;color:${diasColor};margin-top:2px;">${diasPendiente === 0 ? 'Hoy' : `Hace ${diasPendiente} día${diasPendiente !== 1 ? 's' : ''}`}</div>
-      </td>
-      <td class="col-priority-1">${v.cliente_nombre ? `<span style="font-weight:500;">${escHtml(v.cliente_nombre)}</span>` : '<span style="color:var(--text3);">Sin cliente</span>'}</td>
-      <td class="col-priority-2" style="font-size:13px;color:var(--text2);">${fecha}</td>
-      <td class="col-priority-2" style="font-size:13px;" id="rcr-items-${v.id}"><span style="color:var(--text3);">-</span></td>
-      <td class="col-priority-1 text-right"><span style="font-family:'Syne',sans-serif;font-weight:700;color:var(--accent);">${money(v.total)}</span></td>
-      <td class="col-priority-1">
-        ${canFinalizar
-          ? `<button class="btn-accent" style="font-size:12px;padding:7px 14px;white-space:nowrap;" onclick="openFinalizarCredito(${v.id})"><i class="fa-solid fa-check"></i> Finalizar</button>`
-          : `<span style="font-size:12px;color:var(--text3);">Sin permiso</span>`}
-      </td>
-    </tr>`;
-  }).join('');
+  } else {
+    tbody.innerHTML = slice.map(v => {
+      const fecha = new Date(v.fecha).toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' });
+      const diasPendiente = Math.floor((Date.now() - new Date(v.fecha).getTime()) / 86400000);
+      const diasColor = diasPendiente > 7 ? 'var(--danger)' : diasPendiente > 3 ? 'var(--accent2)' : 'var(--text2)';
+      return `<tr>
+        <td class="col-priority-1">
+          <span class="text-accent fw-bold">${escHtml(v.folio_venta)}</span>
+          <div style="font-size:11px;color:${diasColor};margin-top:2px;">${diasPendiente === 0 ? 'Hoy' : `Hace ${diasPendiente} día${diasPendiente !== 1 ? 's' : ''}`}</div>
+        </td>
+        <td class="col-priority-1">${v.cliente_nombre ? `<span style="font-weight:500;">${escHtml(v.cliente_nombre)}</span>` : '<span style="color:var(--text3);">Sin cliente</span>'}</td>
+        <td class="col-priority-2" style="font-size:13px;color:var(--text2);">${fecha}</td>
+        <td class="col-priority-2" style="font-size:13px;" id="rcr-items-${v.id}"><span style="color:var(--text3);">-</span></td>
+        <td class="col-priority-1 text-right"><span style="font-family:'Syne',sans-serif;font-weight:700;color:var(--accent);">${money(v.total)}</span></td>
+        <td class="col-priority-1">
+          ${canFinalizar
+            ? `<button class="btn-accent" style="font-size:12px;padding:7px 14px;white-space:nowrap;" onclick="openFinalizarCredito(${v.id})"><i class="fa-solid fa-check"></i> Finalizar</button>`
+            : `<span style="font-size:12px;color:var(--text3);">Sin permiso</span>`}
+        </td>
+      </tr>`;
+    }).join('');
 
-  // Load item summaries sequentially (not all at once) with cancellation
-  const gen = ++creditosLoadGen;
-  (async () => {
-    for (const v of data) {
-      if (gen !== creditosLoadGen) return; // cancelled by tab switch or re-render
-      try {
-        const detail = await api('GET', `/ventas/${v.id}`);
+    // Load item summaries for visible rows with cancellation
+    const gen = ++creditosLoadGen;
+    (async () => {
+      for (const v of slice) {
         if (gen !== creditosLoadGen) return;
-        const el = $id('rcr-items-' + v.id);
-        if (el && detail.items) {
-          el.textContent = detail.items.map(i => `${i.cantidad}× ${i.producto_nombre}`).join(', ');
-        }
-      } catch(e) { /* ignore */ }
-    }
-  })();
+        try {
+          const detail = await api('GET', `/ventas/${v.id}`);
+          if (gen !== creditosLoadGen) return;
+          const el = $id('rcr-items-' + v.id);
+          if (el && detail.items) {
+            el.textContent = detail.items.map(i => `${i.cantidad}× ${i.producto_nombre}`).join(', ');
+          }
+        } catch(e) { /* ignore */ }
+      }
+    })();
+  }
+  updateSortIcons('rcr-tbody', rcrSort.f, rcrSort.d);
+  const pag = $id('rcr-pagination');
+  if (pag) {
+    pag.style.display = total > 0 ? 'flex' : 'none';
+    const from = Math.min((rcrPage - 1) * perPage + 1, total);
+    const to   = Math.min(rcrPage * perPage, total);
+    const info = $id('rcr-page-info'); if (info) info.textContent = `${from}–${to} de ${total}`;
+    const prev = $id('rcr-btn-prev'); if (prev) prev.disabled = rcrPage <= 1;
+    const next = $id('rcr-btn-next'); if (next) next.disabled = rcrPage >= totalPages;
+  }
 }
 
 function filterCreditosTable(q) {
+  rcrPage = 1;
   if (!q) { renderCreditosTable(creditosPendientes); return; }
   const qLow = q.toLowerCase();
   renderCreditosTable(creditosPendientes.filter(v =>
@@ -14078,7 +14498,7 @@ function onProductoTipoChange() {
 // ===== PERSONAS MODULE =====
 let personasPage = 1;
 let personasRolTab = 'cliente';
-const PERSONAS_PER_PAGE = 20;
+let PERSONAS_PER_PAGE = 20;
 let editingPersonaId = null;
 let permisosPersonaId = null;
 
@@ -14087,7 +14507,8 @@ async function loadPersonas() {
   tableLoading(tbody, 6);
   const q   = $id('filter-personas-q')?.value || '';
   const emp = $id('filter-personas-empresa')?.value || '';
-  let url = `/personas?page=${personasPage}&limit=${PERSONAS_PER_PAGE}`;
+  PERSONAS_PER_PAGE = parseInt($id('per-per-page')?.value) || PERSONAS_PER_PAGE;
+  let url = `/personas?page=${personasPage}&limit=${PERSONAS_PER_PAGE}&sort=${perSort.f}_${perSort.d}`;
   if (q)              url += '&q=' + encodeURIComponent(q);
   if (personasRolTab) url += '&rol=' + encodeURIComponent(personasRolTab);
   if (emp)            url += '&empresa_id=' + emp;
@@ -14516,13 +14937,19 @@ $id('rep-end').value = today;
 if (token && currentUserData) {
   $id('login-screen').style.display = 'none';
   $id('app').style.display = 'flex';
-  // Load config data first, then apply permisos + nav
+  // Activate dashboard immediately so skeletons are visible while configs load
+  const _autoTipo = currentUserData.tipo;
+  $id('dash-greeting').style.display    = _autoTipo === 'empleado' ? '' : 'none';
+  $id('dash-admin-header').style.display = _autoTipo === 'empleado' ? 'none' : 'flex';
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  $id('page-dashboard').classList.add('active');
+  dashShowSkeletons();
+  // Load config data first, then apply permisos + navigate to last page
   Promise.all([loadEstadosConfig(), loadRolesConfig(), loadTiposProductos(), loadNivelesPrecios()])
     .catch(() => {})
     .finally(() => {
-      applyPermisos();
+      try { applyPermisos(); } catch(e) { console.warn('[auto-login] init error:', e); try { goTo('dashboard'); } catch(e2) {} }
       updateProfileUI();
-      refreshDashboard();
       startAutoCorteWatcher();
       startNotifWatcher();
     });

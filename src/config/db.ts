@@ -36,6 +36,10 @@ export async function getDB(): Promise<Database> {
     _db = new SQL.Database();
   }
   _db.run('PRAGMA foreign_keys = ON');
+  _db.run('PRAGMA journal_mode = WAL');
+  _db.run('PRAGMA synchronous = NORMAL');
+  _db.run('PRAGMA cache_size = -8000'); // 8 MB page cache
+  _db.run('PRAGMA temp_store = MEMORY');
   return _db;
 }
 

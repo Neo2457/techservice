@@ -7,7 +7,7 @@ import { registrarLog } from '../utils/logger';
 // GET /api/empresas?page=1&limit=20
 export const getEmpresas = async (req: Request, res: Response): Promise<void> => {
   const db = await getDB();
-  const { page = '1', limit = '20', q } = req.query;
+  const { page = '1', limit = '20', q, sort } = req.query;
   const pageNum = parseInt(page as string) || 1;
   const limitNum = Math.min(parseInt(limit as string) || 20, 100);
   const offset = (pageNum - 1) * limitNum;
@@ -17,9 +17,16 @@ export const getEmpresas = async (req: Request, res: Response): Promise<void> =>
     const params: (string | number)[] = [];
     if (q) { where += ' AND (e.nombre LIKE ? OR e.iniciales LIKE ?)'; const like = `%${q}%`; params.push(like, like); }
     const total = (get(db, `SELECT COUNT(*) as total FROM empresa e${where}`, params) as any)?.total ?? 0;
+    const empSortMap: Record<string, string> = {
+      nombre_asc: 'e.nombre ASC', nombre_desc: 'e.nombre DESC',
+      iniciales_asc: 'e.iniciales ASC', iniciales_desc: 'e.iniciales DESC',
+      rfc_asc: 'e.rfc ASC', rfc_desc: 'e.rfc DESC',
+      ciudad_asc: 'e.ciudad ASC', ciudad_desc: 'e.ciudad DESC',
+    };
+    const empOrder = empSortMap[sort as string] ?? 'e.nombre ASC';
     const data = all(db,
       `SELECT e.*, (SELECT COUNT(*) FROM locales WHERE empresa_id = e.id) AS locales_count
-       FROM empresa e${where} ORDER BY e.nombre ASC LIMIT ? OFFSET ?`,
+       FROM empresa e${where} ORDER BY ${empOrder} LIMIT ? OFFSET ?`,
       [...params, limitNum, offset]
     );
     res.json({ data, total, page: pageNum });

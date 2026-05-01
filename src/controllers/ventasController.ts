@@ -162,7 +162,7 @@ export const finalizarVenta = async (req: Request, res: Response): Promise<void>
 // GET /api/ventas — list with pagination, supports ?estado=, ?metodo_pago=, ?buscar= filters
 export const getVentas = async (req: Request, res: Response): Promise<void> => {
   const db = await getDB();
-  const { desde, hasta, estado, metodo_pago, buscar, page = '1', limit = '30' } = req.query;
+  const { desde, hasta, estado, metodo_pago, buscar, page = '1', limit = '30', sort } = req.query;
   const pageNum  = parseInt(page as string) || 1;
   const limitNum = Math.min(parseInt(limit as string) || 30, 100);
   const offset   = (pageNum - 1) * limitNum;
@@ -217,9 +217,17 @@ export const getVentas = async (req: Request, res: Response): Promise<void> => {
     total_items: itemsRow?.total_items ?? 0,
   };
 
+  const vtSortMap: Record<string, string> = {
+    folio_asc: 'v.folio_venta ASC', folio_desc: 'v.folio_venta DESC',
+    fecha_asc: 'v.fecha ASC', fecha_desc: 'v.fecha DESC',
+    cliente_asc: 'c.nombre ASC', cliente_desc: 'c.nombre DESC',
+    metodo_asc: 'v.metodo_pago ASC', metodo_desc: 'v.metodo_pago DESC',
+    total_asc: 'v.total ASC', total_desc: 'v.total DESC',
+  };
+  const vtOrder = vtSortMap[sort as string] ?? 'v.fecha DESC';
   const data = all(db,
     `SELECT v.*, c.nombre as cliente_nombre, u.nombre as usuario_nombre
-     ${baseQuery} ORDER BY v.fecha DESC LIMIT ? OFFSET ?`,
+     ${baseQuery} ORDER BY ${vtOrder} LIMIT ? OFFSET ?`,
     [...params, limitNum, offset]
   );
 

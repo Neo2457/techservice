@@ -208,14 +208,20 @@ export async function initDB(): Promise<void> {
       empresa_id INTEGER,
       fecha TEXT NOT NULL DEFAULT (datetime('now'))
     );
-    CREATE INDEX IF NOT EXISTS idx_servicios_cliente ON servicios(cliente_id);
-    CREATE INDEX IF NOT EXISTS idx_servicios_estado  ON servicios(estado);
-    CREATE INDEX IF NOT EXISTS idx_servicios_empresa ON servicios(empresa_id);
-    CREATE INDEX IF NOT EXISTS idx_ventas_cliente    ON ventas(cliente_id);
-    CREATE INDEX IF NOT EXISTS idx_clientes_nombre   ON personas(nombre);
-    CREATE INDEX IF NOT EXISTS idx_permisos_usuario  ON permisos(usuario_id);
-    CREATE INDEX IF NOT EXISTS idx_logs_empresa      ON logs(empresa_id);
-    CREATE INDEX IF NOT EXISTS idx_logs_fecha        ON logs(fecha);
+    CREATE INDEX IF NOT EXISTS idx_servicios_cliente       ON servicios(cliente_id);
+    CREATE INDEX IF NOT EXISTS idx_servicios_estado        ON servicios(estado);
+    CREATE INDEX IF NOT EXISTS idx_servicios_empresa       ON servicios(empresa_id);
+    CREATE INDEX IF NOT EXISTS idx_servicios_local_empresa ON servicios(local_id, empresa_id);
+    CREATE INDEX IF NOT EXISTS idx_servicios_fecha_entrada ON servicios(fecha_entrada);
+    CREATE INDEX IF NOT EXISTS idx_ventas_cliente          ON ventas(cliente_id);
+    CREATE INDEX IF NOT EXISTS idx_ventas_estado_fecha     ON ventas(estado, fecha_finalizacion);
+    CREATE INDEX IF NOT EXISTS idx_ventas_local_fecha      ON ventas(local_id, empresa_id, fecha_finalizacion);
+    CREATE INDEX IF NOT EXISTS idx_clientes_nombre         ON personas(nombre);
+    CREATE INDEX IF NOT EXISTS idx_personas_correo         ON personas(correo);
+    CREATE INDEX IF NOT EXISTS idx_personas_tipo_empresa   ON personas(tipo, empresa_id);
+    CREATE INDEX IF NOT EXISTS idx_permisos_usuario        ON permisos(usuario_id);
+    CREATE INDEX IF NOT EXISTS idx_logs_empresa            ON logs(empresa_id);
+    CREATE INDEX IF NOT EXISTS idx_logs_fecha              ON logs(fecha);
   `);
 
   // pagos_venta table (split-payment support)
@@ -228,6 +234,7 @@ export async function initDB(): Promise<void> {
       FOREIGN KEY (venta_id) REFERENCES ventas(id) ON DELETE CASCADE ON UPDATE CASCADE
     )`);
   } catch(e) { /* already exists */ }
+  try { db.run('CREATE INDEX IF NOT EXISTS idx_pagos_venta_venta ON pagos_venta(venta_id)'); } catch(e) {}
 
   // pagos_servicio table — cobros de servicios desde caja
   try {
@@ -246,6 +253,8 @@ export async function initDB(): Promise<void> {
       FOREIGN KEY (usuario_id)  REFERENCES personas(id)  ON DELETE RESTRICT ON UPDATE CASCADE
     )`);
   } catch(e) { /* already exists */ }
+  try { db.run('CREATE INDEX IF NOT EXISTS idx_pagos_servicio_servicio  ON pagos_servicio(servicio_id)'); } catch(e) {}
+  try { db.run('CREATE INDEX IF NOT EXISTS idx_pagos_servicio_local_fecha ON pagos_servicio(local_id, empresa_id, fecha)'); } catch(e) {}
 
   // cortes table
   try {
@@ -271,6 +280,7 @@ export async function initDB(): Promise<void> {
       FOREIGN KEY (empresa_id) REFERENCES empresa(id)  ON DELETE RESTRICT ON UPDATE CASCADE
     )`);
   } catch(e) { /* already exists */ }
+  try { db.run('CREATE INDEX IF NOT EXISTS idx_cortes_local_estado ON cortes(local_id, empresa_id, estado)'); } catch(e) {}
 
   // configuracion: corte settings
   try { db.run("ALTER TABLE configuracion ADD COLUMN corte_automatico INTEGER NOT NULL DEFAULT 0"); } catch(e) {}

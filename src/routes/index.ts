@@ -51,7 +51,7 @@ import { getLogs } from '../controllers/logsController';
 import { getNotificaciones, updateNotificacionesConfig } from '../controllers/notificacionesController';
 
 // Importación masiva
-import { importarPreview, importarConfirmar } from '../controllers/importController';
+import { importarPreview, importarConfirmar, importarClientesPreview, importarClientesConfirmar, importarServiciosPreview, importarServiciosConfirmar } from '../controllers/importController';
 
 // Sandbox
 import { createSandbox, listSandboxes, deleteSandbox, resetSandbox } from '../controllers/sandboxController';
@@ -195,6 +195,10 @@ router.put('/configuracion/notificaciones',    authMiddleware, adminOnly, update
 // ── Importación masiva ───────────────────────────────────────
 router.post('/productos/importar/preview',   authMiddleware, checkPermiso('importar_productos', 'crear'), importarPreview);
 router.post('/productos/importar/confirmar', authMiddleware, checkPermiso('importar_productos', 'crear'), importarConfirmar);
+router.post('/clientes/importar/preview',    authMiddleware, checkPermiso('clientes', 'crear'), importarClientesPreview);
+router.post('/clientes/importar/confirmar',  authMiddleware, checkPermiso('clientes', 'crear'), importarClientesConfirmar);
+router.post('/servicios/importar/preview',   authMiddleware, checkPermiso('servicios', 'crear'), importarServiciosPreview);
+router.post('/servicios/importar/confirmar', authMiddleware, checkPermiso('servicios', 'crear'), importarServiciosConfirmar);
 
 // ── Sandbox (solo root) ─────────────────────────────────────
 router.get('/sandbox',           authMiddleware, rootOnly, listSandboxes);

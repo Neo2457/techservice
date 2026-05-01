@@ -6,7 +6,7 @@ import { generarFolio } from '../utils/folio';
 import { registrarLog } from '../utils/logger';
 
 export const getServicios = async (req: Request, res: Response): Promise<void> => {
-  const { q, estado, garantia, desde, hasta, page = '1', limit = '20', empresa_id, local_id } = req.query;
+  const { q, estado, garantia, desde, hasta, page = '1', limit = '20', empresa_id, local_id, sort } = req.query;
   const db = await getDB();
   const offset = (parseInt(page as string) - 1) * parseInt(limit as string);
 
@@ -44,7 +44,20 @@ export const getServicios = async (req: Request, res: Response): Promise<void> =
 
   const total = (get<{ total: number }>(db, sql.replace('SELECT s.*, c.nombre as cliente_nombre, c.telefono as cliente_telefono', 'SELECT COUNT(*) as total'), params) as { total: number })?.total ?? 0;
 
-  sql += ' ORDER BY s.fecha_creacion DESC LIMIT ? OFFSET ?';
+  const srvSortMap: Record<string, string> = {
+    folio_asc: 's.folio ASC', folio_desc: 's.folio DESC',
+    nombre_asc: 'c.nombre ASC', nombre_desc: 'c.nombre DESC',
+    modelo_asc: 's.modelo ASC', modelo_desc: 's.modelo DESC',
+    estado_asc: 's.estado ASC', estado_desc: 's.estado DESC',
+    fecha_entrada_asc: 's.fecha_entrada ASC', fecha_entrada_desc: 's.fecha_entrada DESC',
+    costo_total_asc: 's.costo_total ASC', costo_total_desc: 's.costo_total DESC',
+    anticipo_asc: 's.anticipo ASC', anticipo_desc: 's.anticipo DESC',
+    fecha_salida_asc: 's.fecha_salida ASC', fecha_salida_desc: 's.fecha_salida DESC',
+    falla_asc: 's.falla ASC', falla_desc: 's.falla DESC',
+    garantia_asc: 's.garantia ASC', garantia_desc: 's.garantia DESC',
+  };
+  const orderBy = srvSortMap[sort as string] ?? 's.fecha_creacion DESC';
+  sql += ` ORDER BY ${orderBy} LIMIT ? OFFSET ?`;
   params.push(parseInt(limit as string), offset);
 
   res.json({ data: all(db, sql, params), total, page: parseInt(page as string) });
@@ -96,7 +109,7 @@ export const createServicio = async (req: Request, res: Response): Promise<void>
      userId, effectiveLocalId, empresaId]);
 
   const newId = result.lastInsertRowid;
-  const folio = generarFolio(db, empresaId, newId);
+  const folio = generarFolio(db, empresaId);
   run(db, 'UPDATE servicios SET folio = ? WHERE id = ?', [folio, newId]);
 
   // Si hay anticipo, registrar como pago (con flag fuera_caja si no hay corte abierto)

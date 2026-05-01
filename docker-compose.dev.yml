@@ -1,0 +1,37 @@
+services:
+  app:
+    image: node:20-alpine
+    container_name: techservice-dev
+    working_dir: /app
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      PORT: 3000
+      NODE_ENV: development
+      JWT_SECRET: ${JWT_SECRET:-techservice_super_secret_cambiame}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-24h}
+      DB_PATH: /app/database/techservice.db
+      UPLOAD_PATH: /app/public/uploads
+    # Instala dependencias y corre con nodemon (auto-reload al guardar .ts)
+    # nodemon se obtiene en runtime con npx --yes; NO modifica package.json.
+    command: >
+      sh -c "npm install &&
+             npx --yes nodemon --watch src --ext ts,js,json
+             --exec 'npx ts-node --transpile-only src/index.ts'"
+    volumes:
+      # Bind mount del código fuente para hot-reload
+      - ./src:/app/src
+      - ./public:/app/public
+      - ./package.json:/app/package.json
+      - ./package-lock.json:/app/package-lock.json
+      - ./tsconfig.json:/app/tsconfig.json
+      # node_modules en volumen anónimo para no chocar con el del host
+      - /app/node_modules
+      # Persistencia de BD y uploads (separados de prod)
+      - db_data_dev:/app/database
+      - uploads_data_dev:/app/public/uploads
+
+volumes:
+  db_data_dev:
+  uploads_data_dev:

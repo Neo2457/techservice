@@ -23,7 +23,7 @@ interface PermisoRow {
 // GET /api/usuarios?empresa_id=N&local_id=N&tipo=admin|empleado&page=1&limit=20
 export const getUsuarios = async (req: Request, res: Response): Promise<void> => {
   const db = await getDB();
-  const { empresa_id, local_id, tipo, q, page = '1', limit = '20' } = req.query;
+  const { empresa_id, local_id, tipo, q, page = '1', limit = '20', sort } = req.query;
   const pageNum = parseInt(page as string) || 1;
   const limitNum = Math.min(parseInt(limit as string) || 20, 100);
   const offset = (pageNum - 1) * limitNum;
@@ -56,7 +56,8 @@ export const getUsuarios = async (req: Request, res: Response): Promise<void> =>
   }
 
   const total = (get(db, `SELECT COUNT(*) as total FROM personas u${where}`, params) as any)?.total ?? 0;
-  const data = all(db, `${baseSelect}${where} ORDER BY u.fecha_creacion DESC LIMIT ? OFFSET ?`, [...params, limitNum, offset]);
+  const usrOrder = ({ nombre_asc:'u.nombre ASC', nombre_desc:'u.nombre DESC', tipo_asc:'u.tipo ASC', tipo_desc:'u.tipo DESC', fecha_asc:'u.fecha_creacion ASC', fecha_desc:'u.fecha_creacion DESC' } as Record<string,string>)[sort as string] ?? 'u.fecha_creacion DESC';
+  const data = all(db, `${baseSelect}${where} ORDER BY ${usrOrder} LIMIT ? OFFSET ?`, [...params, limitNum, offset]);
   res.json({ data, total, page: pageNum });
 };
 

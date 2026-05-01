@@ -132,7 +132,7 @@ export const createProducto = async (req: Request, res: Response): Promise<void>
   );
 
   const newId = result.lastInsertRowid;
-  const folio = generarFolioProducto(db, empresaId, Number(newId));
+  const folio = generarFolioProducto(db, empresaId);
   const finalCodigo = codigo?.trim() || '';
 
   run(db, 'UPDATE productos SET folio = ?, codigo = ? WHERE id = ?', [folio, finalCodigo, newId]);
