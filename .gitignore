@@ -6,3 +6,12 @@ database/*.db-wal
 database/*.db-shm
 public/uploads/
 *.js.map
+
+# Bind mount con la BD y uploads en producción.
+# Ignoramos TODO el contenido de data/ excepto los .gitkeep que mantienen
+# la estructura de carpetas trackeada para que existan al hacer git pull.
+data/**
+!data/database/
+!data/uploads/
+!data/database/.gitkeep
+!data/uploads/.gitkeep

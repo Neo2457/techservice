@@ -13,9 +13,9 @@ services:
       DB_PATH: /app/database/techservice.db
       UPLOAD_PATH: /app/public/uploads
     volumes:
-      - db_data:/app/database
-      - uploads_data:/app/public/uploads
-
-volumes:
-  db_data:
-  uploads_data:
+      # Bind mounts a carpetas del HOST (no volúmenes Docker nombrados).
+      # Esto hace que la BD y los uploads sobrevivan a rebuilds, redeploys,
+      # docker compose down, etc. Sólo se pierden si borras las carpetas en
+      # el filesystem del servidor.
+      - ./data/database:/app/database
+      - ./data/uploads:/app/public/uploads
