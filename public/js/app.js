@@ -136,7 +136,6 @@ const TRANSLATIONS = {
     'login.label.usuario': 'Usuario',
     'login.label.contrasena': 'Contraseña',
     'login.btn': 'Entrar al sistema',
-    'login.hint': 'Demo: usuario <strong>admin</strong> / contraseña <strong>1234</strong>',
     // Sidebar
     'nav.section.principal': 'Principal',
     'nav.section.gestion': 'Gestión',
@@ -844,7 +843,6 @@ const TRANSLATIONS = {
     'login.label.usuario': 'Username',
     'login.label.contrasena': 'Password',
     'login.btn': 'Enter system',
-    'login.hint': 'Demo: user <strong>admin</strong> / password <strong>1234</strong>',
     // Sidebar
     'nav.section.principal': 'Main',
     'nav.section.gestion': 'Management',
