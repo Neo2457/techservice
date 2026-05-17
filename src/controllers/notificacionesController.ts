@@ -187,7 +187,45 @@ export const getNotificaciones = async (req: Request, res: Response): Promise<vo
     }
   }
 
-  res.json({ notifs, total: notifs.length });
+  // Filtrar las que el usuario ya descartó (persisten entre sesiones)
+  const dismissed = all<{ notif_id: string }>(
+    db,
+    'SELECT notif_id FROM notificaciones_descartadas WHERE usuario_id = ?',
+    [userId]
+  );
+  const dismissedIds = new Set(dismissed.map(d => d.notif_id));
+  const visibles = notifs.filter(n => !dismissedIds.has(n.id));
+
+  res.json({ notifs: visibles, total: visibles.length });
+};
+
+// POST /api/notificaciones/dismiss — marca una notificación como descartada
+// para el usuario actual. No vuelve a aparecer hasta que se restauren todas.
+export const dismissNotificacion = async (req: Request, res: Response): Promise<void> => {
+  const { id } = req.body || {};
+  if (!id || typeof id !== 'string') {
+    res.status(400).json({ error: 'id de notificación requerido' }); return;
+  }
+  const db = await getDB();
+  try {
+    run(db,
+      'INSERT OR IGNORE INTO notificaciones_descartadas (usuario_id, notif_id) VALUES (?, ?)',
+      [req.user!.userId, id]
+    );
+    persistDB();
+    res.json({ ok: true });
+  } catch (e: any) {
+    res.status(500).json({ error: 'No se pudo descartar la notificación: ' + (e?.message || e) });
+  }
+};
+
+// DELETE /api/notificaciones/dismissed — limpia todas las descartadas del usuario,
+// haciendo que vuelvan a aparecer si la condición persiste.
+export const restoreDismissedNotificaciones = async (req: Request, res: Response): Promise<void> => {
+  const db = await getDB();
+  run(db, 'DELETE FROM notificaciones_descartadas WHERE usuario_id = ?', [req.user!.userId]);
+  persistDB();
+  res.json({ ok: true });
 };
 
 // PUT /api/configuracion/notificaciones — save notificaciones_config

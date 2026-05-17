@@ -114,15 +114,26 @@ export const updateLocal = async (req: Request, res: Response): Promise<void> =>
   if (!existing) { res.status(404).json({ error: 'Local no encontrado' }); return; }
 
   const { nombre_local, ubicacion_interna, ciudad, estado_local, telefono,
-          correo_contacto, gerente_encargado, fecha_apertura, estatus } = req.body;
+          correo_contacto, gerente_encargado, fecha_apertura, estatus, empresa_id } = req.body;
+
+  // Solo root puede mover un local entre empresas. Admin/empleado conservan la empresa actual.
+  let nuevaEmpresaId: number = existing.empresa_id;
+  if (req.user!.tipo === 'root' && empresa_id !== undefined && empresa_id !== null && Number(empresa_id) !== existing.empresa_id) {
+    const newEmp = Number(empresa_id);
+    if (!get(db, 'SELECT id FROM empresa WHERE id = ?', [newEmp])) {
+      res.status(400).json({ error: 'La empresa destino no existe' }); return;
+    }
+    nuevaEmpresaId = newEmp;
+  }
 
   run(db,
     `UPDATE locales SET nombre_local=?, ubicacion_interna=?, ciudad=?, estado_local=?,
-            telefono=?, correo_contacto=?, gerente_encargado=?, fecha_apertura=?, estatus=?
+            telefono=?, correo_contacto=?, gerente_encargado=?, fecha_apertura=?, estatus=?,
+            empresa_id=?
      WHERE id=?`,
     [nombre_local, ubicacion_interna ?? null, ciudad ?? null, estado_local ?? null,
      telefono ?? null, correo_contacto ?? null, gerente_encargado ?? null,
-     fecha_apertura ?? null, estatus || 'A', id]
+     fecha_apertura ?? null, estatus || 'A', nuevaEmpresaId, id]
   );
 
   persistDB();

@@ -62,6 +62,28 @@ export const updateConfiguracion = async (req: Request, res: Response): Promise<
     ticket_venta_mostrar_items,
     ticket_venta_mostrar_metodo,
     ticket_venta_footer,
+    // Toggles granulares para datos del ticket de servicio
+    ticket_mostrar_folio,
+    ticket_mostrar_cliente_nombre,
+    ticket_mostrar_cliente_telefono,
+    ticket_mostrar_dispositivo,
+    ticket_mostrar_num_serie,
+    ticket_mostrar_falla,
+    ticket_mostrar_observaciones,
+    ticket_mostrar_estado,
+    ticket_mostrar_garantia,
+    ticket_mostrar_fecha_entrada,
+    ticket_mostrar_fecha_salida,
+    ticket_mostrar_anticipo,
+    ticket_mostrar_refacciones,
+    ticket_mostrar_costo_total,
+    ticket_mostrar_restante,
+    ticket_mostrar_ubicacion,
+    ticket_mostrar_fecha_emision,
+    // Imagen secundaria (data URL base64 o /uploads/...)
+    ticket_imagen_extra,
+    ticket_imagen_extra_size,
+    ticket_imagen_extra_pos,
   } = req.body;
 
   // Ensure config exists
@@ -100,6 +122,26 @@ export const updateConfiguracion = async (req: Request, res: Response): Promise<
       ticket_venta_mostrar_items = ?,
       ticket_venta_mostrar_metodo = ?,
       ticket_venta_footer = ?,
+      ticket_mostrar_folio            = ?,
+      ticket_mostrar_cliente_nombre   = ?,
+      ticket_mostrar_cliente_telefono = ?,
+      ticket_mostrar_dispositivo      = ?,
+      ticket_mostrar_num_serie        = ?,
+      ticket_mostrar_falla            = ?,
+      ticket_mostrar_observaciones    = ?,
+      ticket_mostrar_estado           = ?,
+      ticket_mostrar_garantia         = ?,
+      ticket_mostrar_fecha_entrada    = ?,
+      ticket_mostrar_fecha_salida     = ?,
+      ticket_mostrar_anticipo         = ?,
+      ticket_mostrar_refacciones      = ?,
+      ticket_mostrar_costo_total      = ?,
+      ticket_mostrar_restante         = ?,
+      ticket_mostrar_ubicacion        = ?,
+      ticket_mostrar_fecha_emision    = ?,
+      ticket_imagen_extra             = ?,
+      ticket_imagen_extra_size        = ?,
+      ticket_imagen_extra_pos         = ?,
       fecha_actualizacion = datetime('now')
     WHERE empresa_id = ?`,
     [
@@ -131,6 +173,26 @@ export const updateConfiguracion = async (req: Request, res: Response): Promise<
       ticket_venta_mostrar_items ?? 1,
       ticket_venta_mostrar_metodo ?? 1,
       ticket_venta_footer ?? 'Gracias por su compra',
+      ticket_mostrar_folio            ?? 1,
+      ticket_mostrar_cliente_nombre   ?? 1,
+      ticket_mostrar_cliente_telefono ?? 1,
+      ticket_mostrar_dispositivo      ?? 1,
+      ticket_mostrar_num_serie        ?? 1,
+      ticket_mostrar_falla            ?? 1,
+      ticket_mostrar_observaciones    ?? 1,
+      ticket_mostrar_estado           ?? 1,
+      ticket_mostrar_garantia         ?? 1,
+      ticket_mostrar_fecha_entrada    ?? 1,
+      ticket_mostrar_fecha_salida     ?? 1,
+      ticket_mostrar_anticipo         ?? 1,
+      ticket_mostrar_refacciones      ?? 1,
+      ticket_mostrar_costo_total      ?? 1,
+      ticket_mostrar_restante         ?? 1,
+      ticket_mostrar_ubicacion        ?? 1,
+      ticket_mostrar_fecha_emision    ?? 1,
+      ticket_imagen_extra             ?? null,
+      ticket_imagen_extra_size        ?? 60,
+      ticket_imagen_extra_pos         ?? 'final',
 
       empresaId
     ]
@@ -252,16 +314,24 @@ export const getTicketData = async (req: Request, res: Response): Promise<void> 
       [plantillaId, srv.empresa_id]
     ) as any;
     if (plantilla) {
-      cfg.ticket_titulo = plantilla.ticket_titulo;
-      cfg.ticket_mostrar_logo = plantilla.ticket_mostrar_logo;
-      cfg.ticket_mostrar_firma_cliente = plantilla.ticket_mostrar_firma_cliente;
-      cfg.ticket_mostrar_firma_tecnico = plantilla.ticket_mostrar_firma_tecnico;
-      cfg.ticket_mostrar_telefono = plantilla.ticket_mostrar_telefono;
-      cfg.ticket_mostrar_direccion = plantilla.ticket_mostrar_direccion;
-      cfg.ticket_mostrar_gracias = plantilla.ticket_mostrar_gracias;
-      cfg.ticket_politica_garantia = plantilla.ticket_politica_garantia;
-      cfg.ticket_politica_revision = plantilla.ticket_politica_revision;
-      cfg.ticket_texto_extra = plantilla.ticket_texto_extra;
+      // Sobrescribe TODOS los campos visuales del cfg con los de la plantilla.
+      // Los demás campos del cfg (etiqueta, ticket_venta, etc.) se conservan.
+      const overrideKeys = [
+        'ticket_titulo',
+        'ticket_mostrar_logo', 'ticket_mostrar_firma_cliente', 'ticket_mostrar_firma_tecnico',
+        'ticket_mostrar_telefono', 'ticket_mostrar_direccion', 'ticket_mostrar_gracias',
+        'ticket_politica_garantia', 'ticket_politica_revision', 'ticket_texto_extra',
+        'ticket_mostrar_folio', 'ticket_mostrar_cliente_nombre', 'ticket_mostrar_cliente_telefono',
+        'ticket_mostrar_dispositivo', 'ticket_mostrar_num_serie', 'ticket_mostrar_falla',
+        'ticket_mostrar_observaciones', 'ticket_mostrar_estado', 'ticket_mostrar_garantia',
+        'ticket_mostrar_fecha_entrada', 'ticket_mostrar_fecha_salida', 'ticket_mostrar_anticipo',
+        'ticket_mostrar_refacciones', 'ticket_mostrar_costo_total', 'ticket_mostrar_restante',
+        'ticket_mostrar_ubicacion', 'ticket_mostrar_fecha_emision',
+        'ticket_imagen_extra', 'ticket_imagen_extra_size', 'ticket_imagen_extra_pos',
+      ];
+      for (const k of overrideKeys) {
+        if (plantilla[k] !== undefined && plantilla[k] !== null) cfg[k] = plantilla[k];
+      }
     }
   }
 
@@ -557,7 +627,11 @@ export const updateConceptoCobro = async (req: Request, res: Response): Promise<
   if (!nombre?.trim()) { res.status(400).json({ error: 'El nombre es requerido' }); return; }
   const db = await getDB();
   const id = Number(req.params.id);
-  const existing = get(db, 'SELECT id FROM conceptos_cobro WHERE id = ? AND empresa_id = ?', [id, req.user!.empresaId]);
+  // Root puede editar conceptos de cualquier empresa; los demás solo dentro de la suya.
+  let findSql = 'SELECT id FROM conceptos_cobro WHERE id = ?';
+  const findParams: (string | number)[] = [id];
+  if (req.user!.tipo !== 'root') { findSql += ' AND empresa_id = ?'; findParams.push(req.user!.empresaId); }
+  const existing = get(db, findSql, findParams);
   if (!existing) { res.status(404).json({ error: 'Concepto no encontrado' }); return; }
   run(db, 'UPDATE conceptos_cobro SET nombre=?, tipo=?, valor=? WHERE id=?',
     [nombre.trim(), tipo, Number(valor) || 0, id]);
@@ -569,7 +643,11 @@ export const updateConceptoCobro = async (req: Request, res: Response): Promise<
 export const deleteConceptoCobro = async (req: Request, res: Response): Promise<void> => {
   const db = await getDB();
   const id = Number(req.params.id);
-  const existing = get(db, 'SELECT id FROM conceptos_cobro WHERE id = ? AND empresa_id = ?', [id, req.user!.empresaId]);
+  // Root puede borrar conceptos de cualquier empresa; los demás solo dentro de la suya.
+  let findSql = 'SELECT id FROM conceptos_cobro WHERE id = ?';
+  const findParams: (string | number)[] = [id];
+  if (req.user!.tipo !== 'root') { findSql += ' AND empresa_id = ?'; findParams.push(req.user!.empresaId); }
+  const existing = get(db, findSql, findParams);
   if (!existing) { res.status(404).json({ error: 'Concepto no encontrado' }); return; }
   run(db, 'DELETE FROM conceptos_cobro WHERE id = ?', [id]);
   persistDB();

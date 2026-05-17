@@ -157,7 +157,22 @@ export const getCortes = async (req: Request, res: Response): Promise<void> => {
   if (req.user!.tipo !== 'root') {
     where += ' AND c.empresa_id = ?';
     params.push(req.user!.empresaId);
-    if (req.user!.localId) { where += ' AND c.local_id = ?'; params.push(req.user!.localId); }
+    // Aplicar scope efectivo (propio | local | empresa)
+    if (req.user!.tipo === 'empleado') {
+      const scope = req.permisoScope || 'local';
+      if (scope === 'propio') {
+        where += ' AND c.usuario_id = ?';
+        params.push(req.user!.userId);
+      } else if (scope === 'local' && req.user!.localId) {
+        where += ' AND c.local_id = ?';
+        params.push(req.user!.localId);
+      }
+      // scope === 'empresa' → sin filtro adicional, ve todos los de la empresa
+    } else if (req.user!.localId) {
+      // admin con local asignado: ver solo de su local por defecto
+      where += ' AND c.local_id = ?';
+      params.push(req.user!.localId);
+    }
   }
   if (desde) { where += ' AND c.fecha_apertura >= ?'; params.push(desde as string); }
   if (hasta) { where += ' AND c.fecha_apertura <= ?'; params.push((hasta as string) + ' 23:59:59'); }

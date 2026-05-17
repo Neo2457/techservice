@@ -8,7 +8,7 @@ import { generarFolioProducto } from '../utils/folio';
 // GET /api/productos — list with search, filters, sort, pagination
 export const getProductos = async (req: Request, res: Response): Promise<void> => {
   const db = await getDB();
-  const { q, empresa_id, local_id, tipo, stock, sort, page = '1', limit = '20' } = req.query;
+  const { q, empresa_id, local_id, tipo, stock, sort, page = '1', limit = '20', notif } = req.query;
   const pageNum = parseInt(page as string) || 1;
   const limitNum = parseInt(limit as string) || 20;
   const offset = (pageNum - 1) * limitNum;
@@ -46,6 +46,16 @@ export const getProductos = async (req: Request, res: Response): Promise<void> =
   if (stock === 'con_stock')  { where += ' AND p.existencia > 0'; }
   else if (stock === 'sin_stock')  { where += ' AND p.existencia <= 0'; }
   else if (stock === 'bajo_stock') { where += ' AND p.existencia > 0 AND p.existencia <= 5'; }
+
+  if (notif === 'stock_bajo') {
+    const cfgRow = get<any>(db, 'SELECT notificaciones_config FROM configuracion WHERE empresa_id = ?', [req.user!.empresaId]);
+    let umbral = 5;
+    if (cfgRow?.notificaciones_config) {
+      try { umbral = JSON.parse(cfgRow.notificaciones_config).stock_bajo?.umbral ?? 5; } catch(e) {}
+    }
+    where += ' AND p.existencia <= ?';
+    params.push(umbral);
+  }
 
   // Sort
   const sortMap: Record<string, string> = {

@@ -123,7 +123,15 @@ export const finalizarVenta = async (req: Request, res: Response): Promise<void>
 
   let sql = `SELECT v.* FROM ventas v WHERE v.id = ? AND v.estado = 'credito_pendiente'`;
   const params: (string | number)[] = [id];
-  if (req.user!.tipo !== 'root') { sql += ' AND v.empresa_id = ?'; params.push(req.user!.empresaId); }
+  if (req.user!.tipo !== 'root') {
+    sql += ' AND v.empresa_id = ?';
+    params.push(req.user!.empresaId);
+    // Solo empleados se restringen por local; admins finalizan créditos de toda la empresa.
+    if (req.user!.tipo === 'empleado' && req.user!.localId) {
+      sql += ' AND v.local_id = ?';
+      params.push(req.user!.localId);
+    }
+  }
 
   const venta = get<any>(db, sql, params);
   if (!venta) {
@@ -162,7 +170,7 @@ export const finalizarVenta = async (req: Request, res: Response): Promise<void>
 // GET /api/ventas — list with pagination, supports ?estado=, ?metodo_pago=, ?buscar= filters
 export const getVentas = async (req: Request, res: Response): Promise<void> => {
   const db = await getDB();
-  const { desde, hasta, estado, metodo_pago, buscar, page = '1', limit = '30', sort } = req.query;
+  const { desde, hasta, estado, metodo_pago, buscar, page = '1', limit = '30', sort, notif } = req.query;
   const pageNum  = parseInt(page as string) || 1;
   const limitNum = Math.min(parseInt(limit as string) || 30, 100);
   const offset   = (pageNum - 1) * limitNum;
@@ -171,10 +179,11 @@ export const getVentas = async (req: Request, res: Response): Promise<void> => {
   const params: (string | number | null)[] = [];
 
   if (req.user!.tipo !== 'root') {
+    // Admin ve todas las ventas de su empresa; solo empleados se restringen por scope.
     where += ' AND v.empresa_id = ?';
     params.push(req.user!.empresaId);
     if (req.user!.tipo === 'empleado') {
-      const scope = req.permisoScope || 'empresa';
+      const scope = req.permisoScope || 'local';
       if (scope === 'propio') {
         where += ' AND v.usuario_id = ?';
         params.push(req.user!.userId);
@@ -192,6 +201,19 @@ export const getVentas = async (req: Request, res: Response): Promise<void> => {
   if (buscar) {
     where += ' AND (v.folio_venta LIKE ? OR c.nombre LIKE ?)';
     params.push(`%${buscar}%`, `%${buscar}%`);
+  }
+
+  // --- Filtros especiales por notificación ---
+  if (notif === 'credito_vencido') {
+    const cfgRow = get<any>(db, 'SELECT notificaciones_config FROM configuracion WHERE empresa_id = ?', [req.user!.empresaId]);
+    let dias = 7;
+    if (cfgRow?.notificaciones_config) {
+      try { dias = JSON.parse(cfgRow.notificaciones_config).creditos_vencidos?.dias ?? 7; } catch(e) {}
+    }
+    where += " AND v.estado = 'credito_pendiente' AND julianday('now') - julianday(v.fecha) > ?";
+    params.push(dias);
+  } else if (notif === 'pago_pendiente') {
+    where += " AND v.estado = 'credito_pendiente'";
   }
 
   const baseQuery = `FROM ventas v LEFT JOIN personas c ON v.cliente_id = c.id LEFT JOIN personas u ON v.usuario_id = u.id ${where}`;
@@ -245,7 +267,15 @@ export const getVentaById = async (req: Request, res: Response): Promise<void> =
              LEFT JOIN personas u ON v.usuario_id = u.id
              WHERE v.id = ?`;
   const params: (string | number)[] = [id];
-  if (req.user!.tipo !== 'root') { sql += ' AND v.empresa_id = ?'; params.push(req.user!.empresaId); }
+  if (req.user!.tipo !== 'root') {
+    sql += ' AND v.empresa_id = ?';
+    params.push(req.user!.empresaId);
+    // Solo empleados se restringen por local; admins ven el detalle de cualquier venta de su empresa.
+    if (req.user!.tipo === 'empleado' && req.user!.localId) {
+      sql += ' AND v.local_id = ?';
+      params.push(req.user!.localId);
+    }
+  }
 
   const venta = get<any>(db, sql, params);
   if (!venta) { res.status(404).json({ error: 'Venta no encontrada' }); return; }

@@ -7,7 +7,7 @@ import { registrarLog } from '../utils/logger';
 // GET /api/personas
 export const getPersonas = async (req: Request, res: Response): Promise<void> => {
   const db = await getDB();
-  const { q, rol, tipo, empresa_id, local_id, page = '1', limit = '20', sort } = req.query;
+  const { q, rol, tipo, empresa_id, local_id, page = '1', limit = '20', sort, notif } = req.query;
   const pageNum = parseInt(page as string) || 1;
   const limitNum = Math.min(parseInt(limit as string) || 20, 200);
   const offset = (pageNum - 1) * limitNum;
@@ -42,6 +42,23 @@ export const getPersonas = async (req: Request, res: Response): Promise<void> =>
     }
   }
   if (tipo) { where += ' AND p.tipo = ?'; params.push(tipo as string); }
+
+  // --- Filtros especiales por notificación ---
+  if (notif === 'empleados_sin_actividad') {
+    const cfgRow = get<any>(db, 'SELECT notificaciones_config FROM configuracion WHERE empresa_id = ?', [req.user!.empresaId]);
+    let dias = 3;
+    if (cfgRow?.notificaciones_config) {
+      try { dias = JSON.parse(cfgRow.notificaciones_config).empleados_sin_actividad?.dias ?? 3; } catch(e) {}
+    }
+    where += ` AND p.id IN (
+      SELECT u.id FROM personas u
+      LEFT JOIN servicios s ON s.usuario_id = u.id AND s.empresa_id = u.empresa_id
+      WHERE u.empresa_id = p.empresa_id AND u.tipo = 'empleado' AND u.activo = 1
+      GROUP BY u.id
+      HAVING MAX(s.fecha_actualizacion) IS NULL OR julianday('now') - julianday(MAX(s.fecha_actualizacion)) > ?
+    )`;
+    params.push(dias);
+  }
 
   const total = (get(db, `SELECT COUNT(*) as total FROM personas p ${where}`, params) as any)?.total ?? 0;
   const data = all(db, `
@@ -230,8 +247,15 @@ export const desactivarAcceso = async (req: Request, res: Response): Promise<voi
   const db = await getDB();
   const id = Number(req.params.id);
 
-  const persona = get<{ tipo: string | null }>(db, 'SELECT tipo FROM personas WHERE id = ? AND empresa_id = ?',
-    [id, req.user!.empresaId]);
+  // Root puede desactivar acceso de cualquier empresa; los demás solo dentro de la suya.
+  // (La jerarquía adicional ya fue validada por el middleware verificarJerarquiaPersona.)
+  let findSql = 'SELECT tipo FROM personas WHERE id = ?';
+  const findParams: (string | number)[] = [id];
+  if (req.user!.tipo !== 'root') {
+    findSql += ' AND empresa_id = ?';
+    findParams.push(req.user!.empresaId);
+  }
+  const persona = get<{ tipo: string | null }>(db, findSql, findParams);
   if (!persona) { res.status(404).json({ error: 'Persona no encontrada' }); return; }
   if (!persona.tipo || persona.tipo === 'root') {
     res.status(400).json({ error: 'No se puede desactivar este acceso' }); return;
@@ -242,6 +266,45 @@ export const desactivarAcceso = async (req: Request, res: Response): Promise<voi
   run(db, 'DELETE FROM permisos WHERE usuario_id=?', [id]);
   persistDB();
   res.json({ ok: true });
+};
+
+// PUT /api/personas/:id/estado — activar / desactivar usuario sin borrarlo
+// Solo aplica a personas con `tipo` (es decir, con acceso al sistema).
+// Si se desactiva, el usuario no podrá volver a loguearse hasta reactivarse,
+// pero todos sus registros (servicios, ventas, etc.) quedan intactos.
+export const toggleEstadoPersona = async (req: Request, res: Response): Promise<void> => {
+  const db = await getDB();
+  const id = Number(req.params.id);
+  const activoNuevo = req.body.activo ? 1 : 0;
+
+  // Root puede tocar cualquier empresa; los demás solo dentro de la suya.
+  // (Jerarquía adicional ya validada por el middleware verificarJerarquiaPersona.)
+  let findSql = 'SELECT id, tipo, activo FROM personas WHERE id = ?';
+  const findParams: (string | number)[] = [id];
+  if (req.user!.tipo !== 'root') {
+    findSql += ' AND empresa_id = ?';
+    findParams.push(req.user!.empresaId);
+  }
+  const persona = get<{ id: number; tipo: string | null; activo: number }>(db, findSql, findParams);
+  if (!persona) { res.status(404).json({ error: 'Persona no encontrada' }); return; }
+  if (!persona.tipo) {
+    res.status(400).json({ error: 'Esta persona no tiene acceso al sistema, no aplica activar/desactivar' }); return;
+  }
+  if (persona.tipo === 'root' && activoNuevo === 0) {
+    res.status(400).json({ error: 'No se puede desactivar a un usuario root' }); return;
+  }
+  // No permitir auto-desactivarse (te quedarías fuera del sistema)
+  if (id === req.user!.userId && activoNuevo === 0) {
+    res.status(400).json({ error: 'No puedes desactivarte a ti mismo' }); return;
+  }
+
+  run(db, 'UPDATE personas SET activo=? WHERE id=?', [activoNuevo, id]);
+  persistDB();
+  registrarLog({ db, usuarioId: req.user!.userId, usuarioNombre: req.user!.correo, usuarioTipo: req.user!.tipo,
+    accion: activoNuevo ? 'editar' : 'borrar', modulo: 'personas', entidadId: id,
+    descripcion: activoNuevo ? `Reactivó usuario ID ${id}` : `Desactivó usuario ID ${id}`,
+    ip: req.ip, empresaId: req.user!.empresaId });
+  res.json({ ok: true, activo: activoNuevo });
 };
 
 // GET /api/personas/:id/permisos

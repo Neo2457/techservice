@@ -6,7 +6,7 @@ import { generarFolio } from '../utils/folio';
 import { registrarLog } from '../utils/logger';
 
 export const getServicios = async (req: Request, res: Response): Promise<void> => {
-  const { q, estado, garantia, desde, hasta, page = '1', limit = '20', empresa_id, local_id, sort } = req.query;
+  const { q, estado, garantia, desde, hasta, page = '1', limit = '20', empresa_id, local_id, sort, notif, notif_param } = req.query;
   const db = await getDB();
   const offset = (parseInt(page as string) - 1) * parseInt(limit as string);
 
@@ -19,11 +19,15 @@ export const getServicios = async (req: Request, res: Response): Promise<void> =
   const params: (string | number | null)[] = [];
 
   if (req.user!.tipo === 'root') {
+    // Root puede filtrar manualmente por empresa/local desde la UI
     if (empresa_id) { sql += ' AND s.empresa_id = ?'; params.push(Number(empresa_id)); }
-    if (local_id) { sql += ' AND s.local_id = ?'; params.push(Number(local_id)); }
+    if (local_id)   { sql += ' AND s.local_id = ?';   params.push(Number(local_id)); }
   } else {
+    // No-root: siempre limitados a su empresa
     sql += ' AND s.empresa_id = ?';
     params.push(req.user!.empresaId);
+    // Admin ve TODOS los servicios de la empresa (no se restringe por su localId).
+    // Solo empleados se restringen según su scope efectivo.
     if (req.user!.tipo === 'empleado') {
       const scope = req.permisoScope || 'local';
       if (scope === 'propio') {
@@ -38,6 +42,27 @@ export const getServicios = async (req: Request, res: Response): Promise<void> =
 
   if (q) { sql += ` AND (s.folio LIKE ? OR c.nombre LIKE ? OR s.modelo LIKE ? OR s.falla LIKE ?)`; const l = `%${q}%`; params.push(l,l,l,l); }
   if (estado) { sql += ' AND s.estado = ?'; params.push(estado as string); }
+  
+  if (notif === 'servicio_estado' && notif_param) {
+    const cfgRow = get<any>(db, 'SELECT notificaciones_config FROM configuracion WHERE empresa_id = ?', [req.user!.empresaId]);
+    let horas = 0;
+    if (cfgRow?.notificaciones_config) {
+      try {
+        const conf = JSON.parse(cfgRow.notificaciones_config);
+        horas = conf.estados_alerta?.[notif_param as string]?.horas ?? 0;
+      } catch(e) {}
+    }
+    if (horas > 0) {
+      // Forzamos que coincida el estado y el límite de horas
+      sql += " AND s.estado = ? AND datetime(COALESCE(s.fecha_estado, s.fecha_actualizacion)) <= datetime('now', ?)";
+      params.push(notif_param as string, `-${horas} hours`);
+    } else {
+      // Si no hay horas configuradas, al menos filtramos por el estado
+      sql += " AND s.estado = ?";
+      params.push(notif_param as string);
+    }
+  }
+
   if (garantia) { sql += ' AND s.garantia = ?'; params.push(garantia as string); }
   if (desde) { sql += ' AND s.fecha_entrada >= ?'; params.push(desde as string); }
   if (hasta) { sql += ' AND s.fecha_entrada <= ?'; params.push(hasta as string); }
@@ -56,8 +81,10 @@ export const getServicios = async (req: Request, res: Response): Promise<void> =
     falla_asc: 's.falla ASC', falla_desc: 's.falla DESC',
     garantia_asc: 's.garantia ASC', garantia_desc: 's.garantia DESC',
   };
-  const orderBy = srvSortMap[sort as string] ?? 's.fecha_creacion DESC';
-  sql += ` ORDER BY ${orderBy} LIMIT ? OFFSET ?`;
+  const orderBy = srvSortMap[sort as string] ?? 's.fecha_entrada DESC';
+  // Tiebreaker por id DESC: cuando hay empate de fecha (común en datos migrados),
+  // el registro más recientemente ingresado al sistema queda arriba.
+  sql += ` ORDER BY ${orderBy}, s.id DESC LIMIT ? OFFSET ?`;
   params.push(parseInt(limit as string), offset);
 
   res.json({ data: all(db, sql, params), total, page: parseInt(page as string) });
@@ -71,8 +98,19 @@ export const getServicioById = async (req: Request, res: Response): Promise<void
     WHERE s.id = ?`;
   const params: (string | number)[] = [Number(req.params.id)];
   if (req.user!.tipo !== 'root') {
+    // Restricción por empresa. Para empleados aplicamos también scope local/propio.
     sql += ' AND s.empresa_id = ?';
     params.push(req.user!.empresaId);
+    if (req.user!.tipo === 'empleado') {
+      const scope = req.permisoScope || 'local';
+      if (scope === 'propio') {
+        sql += ' AND s.usuario_id = ?';
+        params.push(req.user!.userId);
+      } else if (scope === 'local' && req.user!.localId) {
+        sql += ' AND s.local_id = ?';
+        params.push(req.user!.localId);
+      }
+    }
   }
   const s = get(db, sql, params);
   if (!s) { res.status(404).json({ error: 'Servicio no encontrado' }); return; }
@@ -143,7 +181,11 @@ export const updateServicio = async (req: Request, res: Response): Promise<void>
   const db = await getDB();
   const id = Number(req.params.id);
 
-  const existing = get<{ id: number; local_id: number; estado: string }>(db, 'SELECT id, local_id, estado FROM servicios WHERE id = ? AND empresa_id = ?', [id, req.user!.empresaId]);
+  // Root puede editar servicios de cualquier empresa; los demás solo dentro de la suya.
+  let findSql = 'SELECT id, local_id, estado FROM servicios WHERE id = ?';
+  const findParams: (string | number)[] = [id];
+  if (tipo !== 'root') { findSql += ' AND empresa_id = ?'; findParams.push(req.user!.empresaId); }
+  const existing = get<{ id: number; local_id: number; estado: string }>(db, findSql, findParams);
   if (!existing) {
     res.status(404).json({ error: 'Servicio no encontrado' }); return;
   }
@@ -202,13 +244,20 @@ export const getReporte = async (req: Request, res: Response): Promise<void> => 
 
   if (req.user!.tipo === 'root') {
     if (empresa_id) { sql += ' AND s.empresa_id = ?'; params.push(Number(empresa_id)); }
-    if (local_id) { sql += ' AND s.local_id = ?'; params.push(Number(local_id)); }
+    if (local_id)   { sql += ' AND s.local_id = ?';   params.push(Number(local_id)); }
   } else {
+    // Admin ve todos los servicios de su empresa; solo empleados se restringen por scope.
     sql += ' AND s.empresa_id = ?';
     params.push(req.user!.empresaId);
-    if (req.user!.tipo === 'empleado' && req.user!.localId) {
-      sql += ' AND s.local_id = ?';
-      params.push(req.user!.localId);
+    if (req.user!.tipo === 'empleado') {
+      const scope = req.permisoScope || 'local';
+      if (scope === 'propio') {
+        sql += ' AND s.usuario_id = ?';
+        params.push(req.user!.userId);
+      } else if (scope === 'local' && req.user!.localId) {
+        sql += ' AND s.local_id = ?';
+        params.push(req.user!.localId);
+      }
     }
   }
 
@@ -319,9 +368,6 @@ export const getDashboard = async (req: Request, res: Response): Promise<void> =
       COUNT(CASE WHEN estado = 'credito_pendiente' THEN 1 END) as creditos_activos
     FROM ventas ${vwAll.clause}`, vwAll.params);
 
-  // Total credits regardless of filter (just empresa)
-  const creditosRow = get<any>(db, `SELECT COUNT(*) as c FROM ventas WHERE empresa_id = ? AND estado = 'credito_pendiente'`, [effEmpresa]);
-
   // ── Monthly series (last 12 months) ──────────────────────────────
   const porMes = all(db, `
     SELECT strftime('%m', fecha_entrada) as mes, strftime('%Y', fecha_entrada) as anio,
@@ -419,7 +465,9 @@ export const getDashboard = async (req: Request, res: Response): Promise<void> =
   }
 
   res.json({
-    stats: { ...stats, ...ventasStats, creditos_activos: creditosRow?.c ?? 0 },
+    // creditos_activos viene de ventasStats que YA respeta el scope del usuario
+    // (empleado ve solo sus créditos; admin/root ve los de la empresa).
+    stats: { ...stats, ...ventasStats, creditos_activos: ventasStats?.creditos_activos ?? 0 },
     porMes,
     ventasPorMes,
     recientes,
@@ -500,11 +548,18 @@ export const getPagosServicioReporte = async (req: Request, res: Response): Prom
     const params: (string | number | null)[] = [];
 
     if (req.user!.tipo !== 'root') {
+      // Admin ve todos los pagos de su empresa; solo empleados se restringen por scope.
       sql += ' AND ps.empresa_id = ?';
       params.push(req.user!.empresaId);
-      if (req.user!.tipo === 'empleado' && req.user!.localId) {
-        sql += ' AND ps.local_id = ?';
-        params.push(req.user!.localId);
+      if (req.user!.tipo === 'empleado') {
+        const scope = req.permisoScope || 'local';
+        if (scope === 'propio') {
+          sql += ' AND ps.usuario_id = ?';
+          params.push(req.user!.userId);
+        } else if (scope === 'local' && req.user!.localId) {
+          sql += ' AND ps.local_id = ?';
+          params.push(req.user!.localId);
+        }
       }
     } else {
       if (empresa_id) { sql += ' AND ps.empresa_id = ?'; params.push(Number(empresa_id)); }

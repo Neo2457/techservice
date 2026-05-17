@@ -23,6 +23,7 @@ services:
       # Bind mount del código fuente para hot-reload
       - ./src:/app/src
       - ./public:/app/public
+      - ./scripts:/app/scripts
       - ./package.json:/app/package.json
       - ./package-lock.json:/app/package-lock.json
       - ./tsconfig.json:/app/tsconfig.json

@@ -4,15 +4,16 @@
 import { Router } from 'express';
 import { authMiddleware, adminOnly, rootOnly } from '../middleware/auth';
 import { checkPermiso } from '../middleware/permisos';
+import { verificarJerarquiaPersona, verificarJerarquiaVerDetalle } from '../middleware/jerarquia';
+import { getCatalogoPermisos } from '../controllers/permisosController';
+import { globalSearch } from '../controllers/searchController';
 
 // Auth
 import { login, getProfile, updateProfile, changePassword, switchLocal } from '../controllers/authController';
 
-// Clientes
-import { getClientes, getClienteById, createCliente, updateCliente, deleteCliente, updateRoles } from '../controllers/clientesController';
 
 // Personas (módulo unificado)
-import { getPersonas, getPersonaById, createPersona, updatePersona, deletePersona, activarAcceso, desactivarAcceso, getPermisos as getPersonaPermisos, updatePermisos as updatePersonaPermisos } from '../controllers/personasController';
+import { getPersonas, getPersonaById, createPersona, updatePersona, deletePersona, activarAcceso, desactivarAcceso, toggleEstadoPersona, getPermisos as getPersonaPermisos, updatePermisos as updatePersonaPermisos } from '../controllers/personasController';
 
 // Servicios
 import { getServicios, getServicioById, createServicio, updateServicio, deleteServicio, getReporte, getDashboard, cobrarServicio, getPagosServicio, getPagosServicioReporte } from '../controllers/serviciosController';
@@ -20,8 +21,6 @@ import { getServicios, getServicioById, createServicio, updateServicio, deleteSe
 // Productos
 import { getProductos, getProductoById, createProducto, updateProducto, deleteProducto } from '../controllers/productosController';
 
-// Usuarios
-import { getUsuarios, getUsuarioById, createUsuario, updateUsuario, deleteUsuario, getPermisos, updatePermisos } from '../controllers/usuariosController';
 
 // Empresas
 import { getEmpresas, getEmpresaById, createEmpresa, updateEmpresa, deleteEmpresa } from '../controllers/empresasController';
@@ -48,7 +47,7 @@ import { abrirCorte, getCorteActivo, cerrarCorte, getCortes, getCorteDetalle } f
 import { getLogs } from '../controllers/logsController';
 
 // Notificaciones
-import { getNotificaciones, updateNotificacionesConfig } from '../controllers/notificacionesController';
+import { getNotificaciones, updateNotificacionesConfig, dismissNotificacion, restoreDismissedNotificaciones } from '../controllers/notificacionesController';
 
 // Importación masiva
 import { importarPreview, importarConfirmar, importarClientesPreview, importarClientesConfirmar, importarServiciosPreview, importarServiciosConfirmar } from '../controllers/importController';
@@ -68,40 +67,42 @@ router.put('/auth/switch-local',    authMiddleware, adminOnly, switchLocal);
 // ── Dashboard ─────────────────────────────────────────────────
 router.get('/dashboard', authMiddleware, getDashboard);
 
-// ── Clientes ──────────────────────────────────────────────────
-router.get('/clientes',                          authMiddleware, checkPermiso('clientes', 'ver'),    getClientes);
-router.get('/clientes/:id',                      authMiddleware, checkPermiso('clientes', 'ver'),    getClienteById);
-router.post('/clientes',                         authMiddleware, checkPermiso('clientes', 'crear'),  createCliente);
-router.put('/clientes/:id',                      authMiddleware, checkPermiso('clientes', 'editar'), updateCliente);
-router.delete('/clientes/:id',                   authMiddleware, checkPermiso('clientes', 'borrar'), deleteCliente);
-router.put('/clientes/:id/roles',               authMiddleware, checkPermiso('clientes', 'editar'), updateRoles);
-router.get('/clientes/:id/listas',               authMiddleware, checkPermiso('clientes', 'ver'),    getClienteListas);
-router.put('/clientes/:id/listas',               authMiddleware, checkPermiso('clientes', 'editar'), syncClienteListas);
-router.post('/clientes/:id/listas',              authMiddleware, checkPermiso('clientes', 'editar'), asignarLista);
-router.delete('/clientes/:id/listas/:listaId',   authMiddleware, checkPermiso('clientes', 'editar'), quitarLista);
 
 // ── Personas (módulo unificado) ───────────────────────────────
+// Listado: solo permiso. Detalle/edición/borrado/permisos: además jerarquía.
 router.get('/personas',                        authMiddleware, checkPermiso('personas', 'ver'),    getPersonas);
-router.get('/personas/:id',                    authMiddleware, checkPermiso('personas', 'ver'),    getPersonaById);
+router.get('/personas/:id',                    authMiddleware, checkPermiso('personas', 'ver'),    verificarJerarquiaVerDetalle, getPersonaById);
 router.post('/personas',                       authMiddleware, checkPermiso('personas', 'crear'),  createPersona);
-router.put('/personas/:id',                    authMiddleware, checkPermiso('personas', 'editar'), updatePersona);
-router.delete('/personas/:id',                 authMiddleware, checkPermiso('personas', 'borrar'), deletePersona);
-router.put('/personas/:id/acceso',             authMiddleware, adminOnly, activarAcceso);
-router.delete('/personas/:id/acceso',          authMiddleware, adminOnly, desactivarAcceso);
-router.get('/personas/:id/permisos',           authMiddleware, adminOnly, getPersonaPermisos);
-router.put('/personas/:id/permisos',           authMiddleware, adminOnly, updatePersonaPermisos);
+router.put('/personas/:id',                    authMiddleware, checkPermiso('personas', 'editar'), verificarJerarquiaPersona, updatePersona);
+router.delete('/personas/:id',                 authMiddleware, checkPermiso('personas', 'borrar'), verificarJerarquiaPersona, deletePersona);
+router.put('/personas/:id/acceso',             authMiddleware, adminOnly, verificarJerarquiaPersona, activarAcceso);
+router.delete('/personas/:id/acceso',          authMiddleware, adminOnly, verificarJerarquiaPersona, desactivarAcceso);
+// Activar / desactivar usuario (sin borrarlo). Body: { activo: true | false }
+router.put('/personas/:id/estado',             authMiddleware, adminOnly, verificarJerarquiaPersona, toggleEstadoPersona);
+router.get('/personas/:id/permisos',           authMiddleware, adminOnly, verificarJerarquiaPersona, getPersonaPermisos);
+router.put('/personas/:id/permisos',           authMiddleware, adminOnly, verificarJerarquiaPersona, updatePersonaPermisos);
+router.get('/personas/:id/listas',             authMiddleware, checkPermiso('clientes', 'ver'),    getClienteListas);
+router.put('/personas/:id/listas',             authMiddleware, checkPermiso('clientes', 'editar'), syncClienteListas);
+router.post('/personas/:id/listas',            authMiddleware, checkPermiso('clientes', 'editar'), asignarLista);
+router.delete('/personas/:id/listas/:listaId', authMiddleware, checkPermiso('clientes', 'editar'), quitarLista);
+// ── Catálogo de permisos (para construir UI de gestión) ──────
+router.get('/permisos/catalogo',               authMiddleware, adminOnly, getCatalogoPermisos);
 
-// ── Listas de Precios ─────────────────────────────────────────
-router.get('/listas-precios',              authMiddleware, checkPermiso('clientes', 'ver'),    getListasPrecios);
-router.get('/listas-precios/:id',          authMiddleware, checkPermiso('clientes', 'ver'),    getListaPrecioById);
-router.get('/listas-precios/:id/clientes', authMiddleware, checkPermiso('clientes', 'ver'),    getListaClientes);
-router.post('/listas-precios',             authMiddleware, checkPermiso('clientes', 'crear'),  createListaPrecio);
-router.put('/listas-precios/:id',          authMiddleware, checkPermiso('clientes', 'editar'), updateListaPrecio);
-router.delete('/listas-precios/:id',       authMiddleware, checkPermiso('clientes', 'borrar'), deleteListaPrecio);
+// ── Búsqueda global (command palette) ─────────────────────────
+router.get('/search',                          authMiddleware, globalSearch);
+
+// ── Listas de Precios (módulo separado de clientes) ──────────
+router.get('/listas-precios',              authMiddleware, checkPermiso('listas_precios', 'ver'),    getListasPrecios);
+router.get('/listas-precios/:id',          authMiddleware, checkPermiso('listas_precios', 'ver'),    getListaPrecioById);
+router.get('/listas-precios/:id/clientes', authMiddleware, checkPermiso('listas_precios', 'ver'),    getListaClientes);
+router.post('/listas-precios',             authMiddleware, checkPermiso('listas_precios', 'crear'),  createListaPrecio);
+router.put('/listas-precios/:id',          authMiddleware, checkPermiso('listas_precios', 'editar'), updateListaPrecio);
+router.delete('/listas-precios/:id',       authMiddleware, checkPermiso('listas_precios', 'borrar'), deleteListaPrecio);
 
 // ── Servicios ─────────────────────────────────────────────────
-router.get('/servicios/reporte',  authMiddleware, checkPermiso('reportes', 'ver'), getReporte);
-router.get('/servicios/pagos',    authMiddleware, checkPermiso('reportes', 'ver'), getPagosServicioReporte);
+// Reporte de servicios: usa permiso del módulo base servicios (su scope aplica).
+router.get('/servicios/reporte',  authMiddleware, checkPermiso('servicios', 'ver'), getReporte);
+router.get('/servicios/pagos',    authMiddleware, checkPermiso('servicios', 'ver'), getPagosServicioReporte);
 router.get('/servicios/dashboard',authMiddleware, getDashboard);
 router.get('/servicios',          authMiddleware, checkPermiso('servicios', 'ver'),    getServicios);
 router.get('/servicios/:id',      authMiddleware, checkPermiso('servicios', 'ver'),    getServicioById);
@@ -134,49 +135,44 @@ router.put('/locales/:id/wa-config', authMiddleware, adminOnly, updateLocalWaCon
 router.put('/locales/:id',    authMiddleware, checkPermiso('locales', 'editar'), updateLocal);
 router.delete('/locales/:id', authMiddleware, checkPermiso('locales', 'borrar'), deleteLocal);
 
-// ── Usuarios (solo admin/root) ────────────────────────────────
-router.get('/usuarios',              authMiddleware, adminOnly, getUsuarios);
-router.get('/usuarios/:id',          authMiddleware, adminOnly, getUsuarioById);
-router.post('/usuarios',             authMiddleware, adminOnly, createUsuario);
-router.put('/usuarios/:id',          authMiddleware, adminOnly, updateUsuario);
-router.delete('/usuarios/:id',       authMiddleware, adminOnly, deleteUsuario);
-router.get('/usuarios/:id/permisos', authMiddleware, adminOnly, getPermisos);
-router.put('/usuarios/:id/permisos', authMiddleware, adminOnly, updatePermisos);
 
 // ── Configuración ────────────────────────────────────────────
 router.get('/configuracion/wa',      authMiddleware, getWaConfigPublic);
 router.get('/configuracion/roles',          authMiddleware, getRolesConfig);
-router.put('/configuracion/roles',          authMiddleware, adminOnly, updateRolesConfig);
-router.get('/configuracion/estados',          authMiddleware, getEstadosConfig);
-router.put('/configuracion/estados',          authMiddleware, adminOnly, updateEstadosConfig);
-router.get('/configuracion/conceptos-cobro',  authMiddleware, getConceptosCobro);
-router.post('/configuracion/conceptos-cobro', authMiddleware, adminOnly, createConceptoCobro);
-router.put('/configuracion/conceptos-cobro/:id',    authMiddleware, adminOnly, updateConceptoCobro);
-router.delete('/configuracion/conceptos-cobro/:id', authMiddleware, adminOnly, deleteConceptoCobro);
+router.put('/configuracion/roles',          authMiddleware, adminOnly, updateRolesConfig);  // meta-config: solo admin
+router.get('/configuracion/estados',         authMiddleware, getEstadosConfig);
+router.put('/configuracion/estados',         authMiddleware, adminOnly, updateEstadosConfig);  // meta-config: solo admin
+// Conceptos de cobro: nuevo permiso granular
+router.get('/configuracion/conceptos-cobro',        authMiddleware, checkPermiso('conceptos_cobro', 'ver'),    getConceptosCobro);
+router.post('/configuracion/conceptos-cobro',       authMiddleware, checkPermiso('conceptos_cobro', 'crear'),  createConceptoCobro);
+router.put('/configuracion/conceptos-cobro/:id',    authMiddleware, checkPermiso('conceptos_cobro', 'editar'), updateConceptoCobro);
+router.delete('/configuracion/conceptos-cobro/:id', authMiddleware, checkPermiso('conceptos_cobro', 'borrar'), deleteConceptoCobro);
 router.get('/configuracion/tipos-productos',  authMiddleware, getTiposProductos);
-router.put('/configuracion/tipos-productos',  authMiddleware, adminOnly, updateTiposProductos);
+router.put('/configuracion/tipos-productos',  authMiddleware, adminOnly, updateTiposProductos);  // meta-config: solo admin
 router.get('/configuracion/niveles-precio',   authMiddleware, getNivelesPrecios);
-router.put('/configuracion/niveles-precio',   authMiddleware, adminOnly, updateNivelesPrecios);
-router.get('/configuracion',         authMiddleware, adminOnly, getConfiguracion);
-router.put('/configuracion/wa',      authMiddleware, adminOnly, updateWaConfig);
-router.put('/configuracion',         authMiddleware, adminOnly, updateConfiguracion);
-router.post('/upload/logo',          authMiddleware, adminOnly, uploadLogo);
+router.put('/configuracion/niveles-precio',   authMiddleware, adminOnly, updateNivelesPrecios);  // meta-config: solo admin
+// Configuración general (datos empresa, logo, ticket): permiso granular
+router.get('/configuracion',         authMiddleware, checkPermiso('configuracion', 'ver'),    getConfiguracion);
+router.put('/configuracion/wa',      authMiddleware, checkPermiso('wa_config',     'editar'), updateWaConfig);
+router.put('/configuracion',         authMiddleware, checkPermiso('configuracion', 'editar'), updateConfiguracion);
+router.post('/upload/logo',          authMiddleware, checkPermiso('subir_logos',   'ver'),    uploadLogo);
 router.get('/ticket/:servicioId',    authMiddleware, getTicketData);
 router.get('/ticket-venta/:ventaId', authMiddleware, getTicketVenta);
 
-// ── Plantillas de Ticket ────────────────────────────────────
+// ── Plantillas de Ticket: permiso granular ──────────────────
 router.get('/ticket-plantillas-list',    authMiddleware, getPlantillasForTicket);
-router.get('/ticket-plantillas',         authMiddleware, adminOnly, getPlantillas);
-router.get('/ticket-plantillas/:id',     authMiddleware, adminOnly, getPlantillaById);
-router.post('/ticket-plantillas',        authMiddleware, adminOnly, createPlantilla);
-router.put('/ticket-plantillas/:id',     authMiddleware, adminOnly, updatePlantilla);
-router.delete('/ticket-plantillas/:id',  authMiddleware, adminOnly, deletePlantilla);
+router.get('/ticket-plantillas',         authMiddleware, checkPermiso('ticket_plantillas', 'ver'),    getPlantillas);
+router.get('/ticket-plantillas/:id',     authMiddleware, checkPermiso('ticket_plantillas', 'ver'),    getPlantillaById);
+router.post('/ticket-plantillas',        authMiddleware, checkPermiso('ticket_plantillas', 'crear'),  createPlantilla);
+router.put('/ticket-plantillas/:id',     authMiddleware, checkPermiso('ticket_plantillas', 'editar'), updatePlantilla);
+router.delete('/ticket-plantillas/:id',  authMiddleware, checkPermiso('ticket_plantillas', 'borrar'), deletePlantilla);
 
 // ── Ventas ───────────────────────────────────────────────────
 router.get('/ventas',    authMiddleware, checkPermiso('ventas', 'ver'),   getVentas);
 router.get('/ventas/:id',authMiddleware, checkPermiso('ventas', 'ver'),   getVentaById);
 router.post('/ventas',              authMiddleware, checkPermiso('ventas', 'crear'), createVenta);
-router.post('/ventas/:id/finalizar',authMiddleware, checkPermiso('ventas', 'crear'), finalizarVenta);
+// Finalizar venta a crédito: permiso especial separado
+router.post('/ventas/:id/finalizar',authMiddleware, checkPermiso('finalizar_credito', 'ver'), finalizarVenta);
 
 // ── Cortes ───────────────────────────────────────────────────
 router.get('/cortes',              authMiddleware, checkPermiso('cortes', 'ver'),    getCortes);
@@ -188,17 +184,19 @@ router.post('/cortes/:id/cerrar',  authMiddleware, checkPermiso('cortes', 'edita
 // ── Auditoría ────────────────────────────────────────────────
 router.get('/logs', authMiddleware, checkPermiso('auditoria', 'ver'), getLogs);
 
-// ── Notificaciones ──────────────────────────────────────────
-router.get('/notificaciones',                  authMiddleware, getNotificaciones);
-router.put('/configuracion/notificaciones',    authMiddleware, adminOnly, updateNotificacionesConfig);
+// ── Notificaciones (permiso granular) ───────────────────────
+router.get('/notificaciones',                  authMiddleware, checkPermiso('notificaciones', 'ver'),    getNotificaciones);
+router.post('/notificaciones/dismiss',         authMiddleware, checkPermiso('notificaciones', 'ver'),    dismissNotificacion);
+router.delete('/notificaciones/dismissed',     authMiddleware, checkPermiso('notificaciones', 'ver'),    restoreDismissedNotificaciones);
+router.put('/configuracion/notificaciones',    authMiddleware, checkPermiso('notificaciones', 'editar'), updateNotificacionesConfig);
 
-// ── Importación masiva ───────────────────────────────────────
-router.post('/productos/importar/preview',   authMiddleware, checkPermiso('importar_productos', 'crear'), importarPreview);
-router.post('/productos/importar/confirmar', authMiddleware, checkPermiso('importar_productos', 'crear'), importarConfirmar);
-router.post('/clientes/importar/preview',    authMiddleware, checkPermiso('clientes', 'crear'), importarClientesPreview);
-router.post('/clientes/importar/confirmar',  authMiddleware, checkPermiso('clientes', 'crear'), importarClientesConfirmar);
-router.post('/servicios/importar/preview',   authMiddleware, checkPermiso('servicios', 'crear'), importarServiciosPreview);
-router.post('/servicios/importar/confirmar', authMiddleware, checkPermiso('servicios', 'crear'), importarServiciosConfirmar);
+// ── Importación masiva (un solo permiso para todos los XLSX) ─
+router.post('/productos/importar/preview',   authMiddleware, checkPermiso('importar_xlsx', 'ver'), importarPreview);
+router.post('/productos/importar/confirmar', authMiddleware, checkPermiso('importar_xlsx', 'ver'), importarConfirmar);
+router.post('/clientes/importar/preview',    authMiddleware, checkPermiso('importar_xlsx', 'ver'), importarClientesPreview);
+router.post('/clientes/importar/confirmar',  authMiddleware, checkPermiso('importar_xlsx', 'ver'), importarClientesConfirmar);
+router.post('/servicios/importar/preview',   authMiddleware, checkPermiso('importar_xlsx', 'ver'), importarServiciosPreview);
+router.post('/servicios/importar/confirmar', authMiddleware, checkPermiso('importar_xlsx', 'ver'), importarServiciosConfirmar);
 
 // ── Sandbox (solo root) ─────────────────────────────────────
 router.get('/sandbox',           authMiddleware, rootOnly, listSandboxes);

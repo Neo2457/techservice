@@ -799,6 +799,17 @@ export async function initDB(): Promise<void> {
     FOREIGN KEY (empresa_id) REFERENCES empresa(id) ON DELETE CASCADE
   )`);
 
+  // Notificaciones descartadas por usuario. Persiste para que una notificación
+  // descartada no vuelva a aparecer ni después de recargar la página.
+  db.run(`CREATE TABLE IF NOT EXISTS notificaciones_descartadas (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    usuario_id     INTEGER NOT NULL,
+    notif_id       TEXT NOT NULL,
+    fecha_descarte TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE(usuario_id, notif_id),
+    FOREIGN KEY (usuario_id) REFERENCES personas(id) ON DELETE CASCADE
+  )`);
+
   // Seed defaults for each empresa that has no concepts yet
   const empresas = all<{ id: number }>(db, 'SELECT id FROM empresa', []);
   for (const emp of empresas) {
@@ -815,6 +826,154 @@ export async function initDB(): Promise<void> {
           [emp.id, d.nombre, d.tipo, d.valor, d.orden]);
       }
     }
+  }
+
+  // ── Índices SQL para queries comunes de la app ────────────────────
+  // Cada uno acelera un patrón de WHERE / ORDER BY usado frecuentemente.
+  // CREATE INDEX IF NOT EXISTS es idempotente — agregar nuevos no rompe nada.
+  // Servicios: filtrar por usuario (scope=propio) y combinaciones comunes
+  try { db.run('CREATE INDEX IF NOT EXISTS idx_servicios_usuario_empresa ON servicios(usuario_id, empresa_id)'); } catch(e) {}
+  try { db.run('CREATE INDEX IF NOT EXISTS idx_servicios_empresa_fecha   ON servicios(empresa_id, fecha_entrada DESC)'); } catch(e) {}
+  // Ventas: scope por usuario y ordenamiento por fecha
+  try { db.run('CREATE INDEX IF NOT EXISTS idx_ventas_usuario_empresa    ON ventas(usuario_id, empresa_id)'); } catch(e) {}
+  try { db.run('CREATE INDEX IF NOT EXISTS idx_ventas_empresa_estado     ON ventas(empresa_id, estado)'); } catch(e) {}
+  // Productos: filtros por empresa, búsqueda por código/SKU/folio
+  try { db.run('CREATE INDEX IF NOT EXISTS idx_productos_empresa         ON productos(empresa_id)'); } catch(e) {}
+  try { db.run('CREATE INDEX IF NOT EXISTS idx_productos_codigo          ON productos(codigo)'); } catch(e) {}
+  try { db.run('CREATE INDEX IF NOT EXISTS idx_productos_sku             ON productos(sku)'); } catch(e) {}
+  // Personas: multi-tenant + búsqueda por correo único
+  try { db.run('CREATE INDEX IF NOT EXISTS idx_personas_empresa          ON personas(empresa_id)'); } catch(e) {}
+  // Pagos servicio: reporte de cobros por usuario+fecha
+  try { db.run('CREATE INDEX IF NOT EXISTS idx_pagos_servicio_usuario_fecha ON pagos_servicio(usuario_id, empresa_id, fecha)'); } catch(e) {}
+  // Cortes: scope por usuario y ordenamiento
+  try { db.run('CREATE INDEX IF NOT EXISTS idx_cortes_usuario_empresa    ON cortes(usuario_id, empresa_id)'); } catch(e) {}
+  try { db.run('CREATE INDEX IF NOT EXISTS idx_cortes_fecha_apertura     ON cortes(fecha_apertura DESC)'); } catch(e) {}
+  // Detalle de ventas por venta (para cargar items rápidamente)
+  try { db.run('CREATE INDEX IF NOT EXISTS idx_ventas_detalle_venta      ON ventas_detalle(venta_id)'); } catch(e) {}
+  // Logs por fecha (paginación de auditoría)
+  try { db.run('CREATE INDEX IF NOT EXISTS idx_logs_empresa_fecha        ON logs(empresa_id, fecha DESC)'); } catch(e) {}
+
+  // ── Toggles granulares para cada dato del ticket de servicio ────────
+  // Cada uno controla si ese dato aparece en el ticket impreso.
+  // Default 1 (visible) para no cambiar comportamiento previo.
+  try { db.run("ALTER TABLE configuracion ADD COLUMN ticket_mostrar_folio            INTEGER NOT NULL DEFAULT 1"); } catch(e) {}
+  try { db.run("ALTER TABLE configuracion ADD COLUMN ticket_mostrar_cliente_nombre   INTEGER NOT NULL DEFAULT 1"); } catch(e) {}
+  try { db.run("ALTER TABLE configuracion ADD COLUMN ticket_mostrar_cliente_telefono INTEGER NOT NULL DEFAULT 1"); } catch(e) {}
+  try { db.run("ALTER TABLE configuracion ADD COLUMN ticket_mostrar_dispositivo      INTEGER NOT NULL DEFAULT 1"); } catch(e) {}
+  try { db.run("ALTER TABLE configuracion ADD COLUMN ticket_mostrar_num_serie        INTEGER NOT NULL DEFAULT 1"); } catch(e) {}
+  try { db.run("ALTER TABLE configuracion ADD COLUMN ticket_mostrar_falla            INTEGER NOT NULL DEFAULT 1"); } catch(e) {}
+  try { db.run("ALTER TABLE configuracion ADD COLUMN ticket_mostrar_observaciones    INTEGER NOT NULL DEFAULT 1"); } catch(e) {}
+  try { db.run("ALTER TABLE configuracion ADD COLUMN ticket_mostrar_estado           INTEGER NOT NULL DEFAULT 1"); } catch(e) {}
+  try { db.run("ALTER TABLE configuracion ADD COLUMN ticket_mostrar_garantia         INTEGER NOT NULL DEFAULT 1"); } catch(e) {}
+  try { db.run("ALTER TABLE configuracion ADD COLUMN ticket_mostrar_fecha_entrada    INTEGER NOT NULL DEFAULT 1"); } catch(e) {}
+  try { db.run("ALTER TABLE configuracion ADD COLUMN ticket_mostrar_fecha_salida     INTEGER NOT NULL DEFAULT 1"); } catch(e) {}
+  try { db.run("ALTER TABLE configuracion ADD COLUMN ticket_mostrar_anticipo         INTEGER NOT NULL DEFAULT 1"); } catch(e) {}
+  try { db.run("ALTER TABLE configuracion ADD COLUMN ticket_mostrar_refacciones      INTEGER NOT NULL DEFAULT 1"); } catch(e) {}
+  try { db.run("ALTER TABLE configuracion ADD COLUMN ticket_mostrar_costo_total      INTEGER NOT NULL DEFAULT 1"); } catch(e) {}
+  try { db.run("ALTER TABLE configuracion ADD COLUMN ticket_mostrar_restante         INTEGER NOT NULL DEFAULT 1"); } catch(e) {}
+  try { db.run("ALTER TABLE configuracion ADD COLUMN ticket_mostrar_ubicacion        INTEGER NOT NULL DEFAULT 1"); } catch(e) {}
+  try { db.run("ALTER TABLE configuracion ADD COLUMN ticket_mostrar_fecha_emision    INTEGER NOT NULL DEFAULT 1"); } catch(e) {}
+  // Imagen secundaria opcional (path relativo /uploads/..., tamaño en % del ancho, posición)
+  try { db.run("ALTER TABLE configuracion ADD COLUMN ticket_imagen_extra      TEXT");                                  } catch(e) {}
+  try { db.run("ALTER TABLE configuracion ADD COLUMN ticket_imagen_extra_size INTEGER NOT NULL DEFAULT 60");           } catch(e) {}
+  try { db.run("ALTER TABLE configuracion ADD COLUMN ticket_imagen_extra_pos  TEXT NOT NULL DEFAULT 'final'");         } catch(e) {}
+
+  // Mismos toggles + imagen extra para PLANTILLAS de ticket (ticket_plantillas)
+  // Esto permite que cada plantilla personalize visibilidad e imagen extra propias.
+  try { db.run("ALTER TABLE ticket_plantillas ADD COLUMN ticket_mostrar_folio            INTEGER NOT NULL DEFAULT 1"); } catch(e) {}
+  try { db.run("ALTER TABLE ticket_plantillas ADD COLUMN ticket_mostrar_cliente_nombre   INTEGER NOT NULL DEFAULT 1"); } catch(e) {}
+  try { db.run("ALTER TABLE ticket_plantillas ADD COLUMN ticket_mostrar_cliente_telefono INTEGER NOT NULL DEFAULT 1"); } catch(e) {}
+  try { db.run("ALTER TABLE ticket_plantillas ADD COLUMN ticket_mostrar_dispositivo      INTEGER NOT NULL DEFAULT 1"); } catch(e) {}
+  try { db.run("ALTER TABLE ticket_plantillas ADD COLUMN ticket_mostrar_num_serie        INTEGER NOT NULL DEFAULT 1"); } catch(e) {}
+  try { db.run("ALTER TABLE ticket_plantillas ADD COLUMN ticket_mostrar_falla            INTEGER NOT NULL DEFAULT 1"); } catch(e) {}
+  try { db.run("ALTER TABLE ticket_plantillas ADD COLUMN ticket_mostrar_observaciones    INTEGER NOT NULL DEFAULT 1"); } catch(e) {}
+  try { db.run("ALTER TABLE ticket_plantillas ADD COLUMN ticket_mostrar_estado           INTEGER NOT NULL DEFAULT 1"); } catch(e) {}
+  try { db.run("ALTER TABLE ticket_plantillas ADD COLUMN ticket_mostrar_garantia         INTEGER NOT NULL DEFAULT 1"); } catch(e) {}
+  try { db.run("ALTER TABLE ticket_plantillas ADD COLUMN ticket_mostrar_fecha_entrada    INTEGER NOT NULL DEFAULT 1"); } catch(e) {}
+  try { db.run("ALTER TABLE ticket_plantillas ADD COLUMN ticket_mostrar_fecha_salida     INTEGER NOT NULL DEFAULT 1"); } catch(e) {}
+  try { db.run("ALTER TABLE ticket_plantillas ADD COLUMN ticket_mostrar_anticipo         INTEGER NOT NULL DEFAULT 1"); } catch(e) {}
+  try { db.run("ALTER TABLE ticket_plantillas ADD COLUMN ticket_mostrar_refacciones      INTEGER NOT NULL DEFAULT 1"); } catch(e) {}
+  try { db.run("ALTER TABLE ticket_plantillas ADD COLUMN ticket_mostrar_costo_total      INTEGER NOT NULL DEFAULT 1"); } catch(e) {}
+  try { db.run("ALTER TABLE ticket_plantillas ADD COLUMN ticket_mostrar_restante         INTEGER NOT NULL DEFAULT 1"); } catch(e) {}
+  try { db.run("ALTER TABLE ticket_plantillas ADD COLUMN ticket_mostrar_ubicacion        INTEGER NOT NULL DEFAULT 1"); } catch(e) {}
+  try { db.run("ALTER TABLE ticket_plantillas ADD COLUMN ticket_mostrar_fecha_emision    INTEGER NOT NULL DEFAULT 1"); } catch(e) {}
+  try { db.run("ALTER TABLE ticket_plantillas ADD COLUMN ticket_imagen_extra             TEXT");                       } catch(e) {}
+  try { db.run("ALTER TABLE ticket_plantillas ADD COLUMN ticket_imagen_extra_size        INTEGER NOT NULL DEFAULT 60"); } catch(e) {}
+  try { db.run("ALTER TABLE ticket_plantillas ADD COLUMN ticket_imagen_extra_pos         TEXT NOT NULL DEFAULT 'final'"); } catch(e) {}
+
+  // ── Catálogo de módulos de permiso ────────────────────────────────
+  // Cada fila representa un permiso configurable por usuario (empleado).
+  // - key: identificador interno usado en checkPermiso(modulo, accion)
+  // - grupo: 'crud' | 'reportes' | 'especiales' | 'configuracion'
+  // - acciones: lista CSV de qué acciones aplican (ver/crear/editar/borrar)
+  // - scope_aplica: 1 si soporta scope propio/local/empresa
+  db.run(`CREATE TABLE IF NOT EXISTS permisos_modulos (
+    key          TEXT PRIMARY KEY,
+    nombre       TEXT NOT NULL,
+    descripcion  TEXT,
+    grupo        TEXT NOT NULL,
+    acciones     TEXT NOT NULL DEFAULT 'ver,crear,editar,borrar',
+    scope_aplica INTEGER NOT NULL DEFAULT 0,
+    orden        INTEGER NOT NULL DEFAULT 0,
+    sistema      INTEGER NOT NULL DEFAULT 1
+  )`);
+
+  type PermModulo = { key: string; nombre: string; descripcion: string; grupo: string; acciones: string; scope: number; orden: number; };
+  const permModulos: PermModulo[] = [
+    // ── CRUD: módulos principales del sistema ──
+    { key: 'servicios',         nombre: 'Servicios',          descripcion: 'Gestión de órdenes de servicio',          grupo: 'crud', acciones: 'ver,crear,editar,borrar', scope: 1, orden: 10 },
+    { key: 'clientes',          nombre: 'Clientes',           descripcion: 'Personas con rol de cliente',             grupo: 'crud', acciones: 'ver,crear,editar,borrar', scope: 1, orden: 20 },
+    { key: 'personas',          nombre: 'Personas',           descripcion: 'Tabla unificada de personas',             grupo: 'crud', acciones: 'ver,crear,editar,borrar', scope: 0, orden: 30 },
+    { key: 'productos',         nombre: 'Productos',          descripcion: 'Catálogo de productos / inventario',      grupo: 'crud', acciones: 'ver,crear,editar,borrar', scope: 0, orden: 40 },
+    { key: 'listas_precios',    nombre: 'Listas de precios',  descripcion: 'Listas de precios especiales',            grupo: 'crud', acciones: 'ver,crear,editar,borrar', scope: 0, orden: 50 },
+    { key: 'ventas',            nombre: 'Ventas (POS)',       descripcion: 'Terminal de venta y registro de ventas',  grupo: 'crud', acciones: 'ver,crear,editar,borrar', scope: 1, orden: 60 },
+    { key: 'cortes',            nombre: 'Cortes de caja',     descripcion: 'Aperturas y cierres de caja',             grupo: 'crud', acciones: 'ver,crear,editar,borrar', scope: 1, orden: 70 },
+    { key: 'locales',           nombre: 'Locales',            descripcion: 'Sucursales / locales de la empresa',      grupo: 'crud', acciones: 'ver,crear,editar,borrar', scope: 0, orden: 80 },
+    { key: 'empresas',          nombre: 'Empresas',           descripcion: 'Gestión de empresas (root)',              grupo: 'crud', acciones: 'ver,crear,editar,borrar', scope: 0, orden: 90 },
+    // ── CRUD: configuración del sistema ──
+    { key: 'configuracion',     nombre: 'Configuración',      descripcion: 'Datos de empresa, logo, secciones',       grupo: 'configuracion', acciones: 'ver,editar', scope: 0, orden: 100 },
+    { key: 'ticket_plantillas', nombre: 'Plantillas de ticket', descripcion: 'Plantillas personalizadas de tickets',  grupo: 'configuracion', acciones: 'ver,crear,editar,borrar', scope: 0, orden: 110 },
+    { key: 'conceptos_cobro',   nombre: 'Conceptos de cobro', descripcion: 'Conceptos autofill del POS',              grupo: 'configuracion', acciones: 'ver,crear,editar,borrar', scope: 0, orden: 120 },
+    { key: 'notificaciones',    nombre: 'Notificaciones',     descripcion: 'Configuración de notificaciones',         grupo: 'configuracion', acciones: 'ver,editar', scope: 0, orden: 130 },
+    { key: 'wa_config',         nombre: 'Config WhatsApp',    descripcion: 'Plantillas y endpoint de WA',             grupo: 'configuracion', acciones: 'ver,editar', scope: 0, orden: 140 },
+    // ── Reportes y Auditoría ──
+    // Los reportes (Ventas, Servicios, Cortes, Créditos) NO son módulos
+    // independientes en el backend — comparten endpoint con sus tablas.
+    // El permiso se controla desde el módulo base (servicios, ventas, cortes)
+    // y el scope del módulo base aplica también a su reporte.
+    // Auditoría (logs) sí es un módulo aparte y siempre ve toda la empresa
+    // (sin scope), porque su utilidad es saber qué pasó en el sistema completo.
+    { key: 'auditoria',           nombre: 'Auditoría / Logs',    descripcion: 'Acceso al log de auditoría (sin restricción por usuario)', grupo: 'reportes', acciones: 'ver', scope: 0, orden: 240 },
+    // ── Permisos especiales (acciones puntuales) ──
+    { key: 'ver_costos',              nombre: 'Ver costos',                descripcion: 'Mostrar costos de compra y total en tablas',     grupo: 'especiales', acciones: 'ver', scope: 0, orden: 300 },
+    { key: 'editar_costos',           nombre: 'Editar costos',             descripcion: 'Modificar campos monetarios en servicios',       grupo: 'especiales', acciones: 'ver', scope: 0, orden: 305 },
+    { key: 'ver_utilidad',            nombre: 'Ver utilidad / margen',     descripcion: 'Mostrar utilidad y márgenes en reportes',        grupo: 'especiales', acciones: 'ver', scope: 0, orden: 310 },
+    { key: 'aplicar_descuentos',      nombre: 'Aplicar descuentos',        descripcion: 'Modificar precios o aplicar descuentos en POS',  grupo: 'especiales', acciones: 'ver', scope: 0, orden: 320 },
+    { key: 'cancelar_venta',          nombre: 'Cancelar venta',            descripcion: 'Anular una venta ya registrada',                 grupo: 'especiales', acciones: 'ver', scope: 0, orden: 330 },
+    { key: 'cancelar_servicio',       nombre: 'Cancelar servicio',         descripcion: 'Marcar servicio como cancelado',                 grupo: 'especiales', acciones: 'ver', scope: 0, orden: 340 },
+    { key: 'cambiar_estado_servicio', nombre: 'Cambiar estado de servicio', descripcion: 'Cambiar estado sin editar el servicio entero',  grupo: 'especiales', acciones: 'ver', scope: 0, orden: 350 },
+    { key: 'ajustar_inventario',      nombre: 'Ajustar inventario',        descripcion: 'Modificar existencias manualmente',              grupo: 'especiales', acciones: 'ver', scope: 0, orden: 360 },
+    { key: 'finalizar_credito',       nombre: 'Finalizar venta a crédito', descripcion: 'Marcar venta de crédito como completada',        grupo: 'especiales', acciones: 'ver', scope: 0, orden: 370 },
+    { key: 'ver_pagos_servicio',      nombre: 'Ver pagos de servicio',     descripcion: 'Acceso al historial de cobros',                  grupo: 'especiales', acciones: 'ver', scope: 0, orden: 380 },
+    { key: 'exportar_xlsx',           nombre: 'Exportar a Excel',          descripcion: 'Descargar reportes y catálogos a XLSX',          grupo: 'especiales', acciones: 'ver', scope: 0, orden: 390 },
+    { key: 'importar_xlsx',           nombre: 'Importar desde Excel',      descripcion: 'Cargar productos/clientes/servicios desde XLSX', grupo: 'especiales', acciones: 'ver', scope: 0, orden: 400 },
+    { key: 'notificar_whatsapp',      nombre: 'Notificar por WhatsApp',    descripcion: 'Enviar mensajes de WhatsApp a clientes',         grupo: 'especiales', acciones: 'ver', scope: 0, orden: 410 },
+    { key: 'subir_logos',             nombre: 'Subir/cambiar logos',       descripcion: 'Subir archivos de logo de empresa',              grupo: 'especiales', acciones: 'ver', scope: 0, orden: 420 },
+  ];
+  for (const m of permModulos) {
+    try {
+      db.run(
+        'INSERT OR REPLACE INTO permisos_modulos (key, nombre, descripcion, grupo, acciones, scope_aplica, orden, sistema) VALUES (?,?,?,?,?,?,?,1)',
+        [m.key, m.nombre, m.descripcion, m.grupo, m.acciones, m.scope, m.orden]
+      );
+    } catch(e) { /* ignore */ }
+  }
+  // Limpieza: módulos `reportes_*` ya no son parte del catálogo (los reportes
+  // se controlan con el permiso del módulo base y comparten su scope).
+  // Esto borra: registros del catálogo + permisos huérfanos asignados.
+  for (const obsoleto of ['reportes_ventas', 'reportes_servicios', 'reportes_cortes', 'reportes_creditos']) {
+    try { db.run('DELETE FROM permisos_modulos WHERE key = ?', [obsoleto]); } catch(e) {}
+    try { db.run('DELETE FROM permisos WHERE modulo = ?', [obsoleto]); } catch(e) {}
   }
 
   // Always persist after migrations so schema changes survive restarts
