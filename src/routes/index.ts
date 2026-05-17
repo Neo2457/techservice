@@ -1,7 +1,7 @@
 // src/routes/index.ts
 // Enrutador principal — agrega todos los módulos
 
-import { Router } from 'express';
+import { Router, raw } from 'express';
 import { authMiddleware, adminOnly, rootOnly } from '../middleware/auth';
 import { checkPermiso } from '../middleware/permisos';
 import { verificarJerarquiaPersona, verificarJerarquiaVerDetalle } from '../middleware/jerarquia';
@@ -54,6 +54,9 @@ import { importarPreview, importarConfirmar, importarClientesPreview, importarCl
 
 // Sandbox
 import { createSandbox, listSandboxes, deleteSandbox, resetSandbox } from '../controllers/sandboxController';
+
+// Admin DB (descargar/subir BD)
+import { downloadDatabase, uploadDatabase } from '../controllers/adminDbController';
 
 const router = Router();
 
@@ -203,5 +206,12 @@ router.get('/sandbox',           authMiddleware, rootOnly, listSandboxes);
 router.post('/sandbox',          authMiddleware, rootOnly, createSandbox);
 router.delete('/sandbox/:id',    authMiddleware, rootOnly, deleteSandbox);
 router.put('/sandbox/:id/reset', authMiddleware, rootOnly, resetSandbox);
+
+// ── Admin BD: descargar / subir el archivo .db (sólo root) ─────────────
+// El upload usa express.raw para recibir el binario directamente sin JSON.
+// Aumentamos el límite a 200 MB para BDs grandes.
+router.get('/admin/database/download',  authMiddleware, rootOnly, downloadDatabase);
+router.post('/admin/database/upload',   authMiddleware, rootOnly,
+  raw({ type: 'application/octet-stream', limit: '200mb' }), uploadDatabase);
 
 export default router;

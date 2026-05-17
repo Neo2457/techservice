@@ -1488,6 +1488,36 @@
           <p style="color:var(--text3);">Cargando sandboxes...</p>
         </div>
       </div>
+
+      <!-- DB Tools (root) -->
+      <div class="widget" style="margin-top:24px;padding:20px 22px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+          <div style="width:34px;height:34px;border-radius:8px;background:rgba(30,144,255,0.12);display:flex;align-items:center;justify-content:center;color:var(--info);"><i class="fa-solid fa-database"></i></div>
+          <div>
+            <div style="font-weight:700;font-size:15px;">Base de datos</div>
+            <div style="font-size:12px;color:var(--text2);">Descarga la BD actual o reemplázala con un archivo .db</div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
+          <button class="btn-outline" onclick="adminDownloadDB()" style="font-size:13px;">
+            <i class="fa-solid fa-download"></i> Descargar BD actual
+          </button>
+
+          <label class="btn-outline" for="admin-db-upload-input" style="font-size:13px;cursor:pointer;">
+            <i class="fa-solid fa-upload"></i> Subir y reemplazar BD
+          </label>
+          <input type="file" id="admin-db-upload-input" accept=".db" style="display:none;" onchange="adminUploadDB(this.files[0])">
+
+          <span id="admin-db-status" style="font-size:12px;color:var(--text3);"></span>
+        </div>
+
+        <div style="margin-top:12px;padding:10px 14px;background:rgba(255,71,87,0.08);border:1px solid rgba(255,71,87,0.25);border-radius:8px;font-size:12px;color:var(--text2);line-height:1.5;">
+          <i class="fa-solid fa-triangle-exclamation" style="color:var(--danger);margin-right:6px;"></i>
+          Al subir una BD se reemplaza la actual y el servidor se reinicia automáticamente.
+          Se crea un backup interno antes de sobrescribir. Cierra sesiones activas antes de hacer esto.
+        </div>
+      </div>
     </section>
 
     <!-- PROFILE -->

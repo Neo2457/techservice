@@ -5066,6 +5066,77 @@ function logTipoLabel(tipo) {
   return '<span style="color:var(--text3);font-size:10px;">EMPLEADO</span>';
 }
 
+// ===== ADMIN DB (descargar / reemplazar BD del servidor) =====
+window.adminDownloadDB = async function() {
+  const statusEl = $id('admin-db-status');
+  if (statusEl) statusEl.textContent = 'Descargando…';
+  try {
+    const res = await fetch('/api/admin/database/download', {
+      headers: { 'Authorization': 'Bearer ' + token },
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: 'HTTP ' + res.status }));
+      throw new Error(err.error || 'Error ' + res.status);
+    }
+    const blob = await res.blob();
+    // Detectar nombre del header
+    const cd = res.headers.get('Content-Disposition') || '';
+    const match = cd.match(/filename="?([^"]+)"?/);
+    const fname = (match && match[1]) || ('techservice-' + Date.now() + '.db');
+    // Trigger download
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = fname;
+    document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 200);
+    if (statusEl) statusEl.textContent = '✓ Descargado ' + fname + ' (' + (blob.size / 1024).toFixed(0) + ' KB)';
+    showToast('BD descargada', 'success');
+  } catch(e) {
+    if (statusEl) statusEl.textContent = '✗ ' + (e.message || e);
+    showToast('Error: ' + (e.message || e), 'error');
+  }
+};
+
+window.adminUploadDB = async function(file) {
+  if (!file) return;
+  const statusEl = $id('admin-db-status');
+  const confirmMsg =
+    `¿Reemplazar la BD del servidor con "${file.name}" (${(file.size / 1024).toFixed(0)} KB)?\n\n` +
+    'La BD actual se respaldará automáticamente, pero TODAS las sesiones activas se cerrarán\n' +
+    'y el servidor se reiniciará en ~1 segundo después de subir.\n\nEsta acción NO se puede deshacer fácilmente.';
+  if (!confirm(confirmMsg)) {
+    $id('admin-db-upload-input').value = '';
+    return;
+  }
+  if (statusEl) statusEl.textContent = 'Subiendo ' + file.name + '…';
+  try {
+    const res = await fetch('/api/admin/database/upload', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/octet-stream',
+      },
+      body: file,
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'HTTP ' + res.status);
+    if (statusEl) statusEl.textContent = '✓ ' + data.message;
+    showToast('BD reemplazada. Reiniciando servidor…', 'success');
+    // Esperar ~3s y forzar logout porque el server va a reiniciar
+    setTimeout(() => {
+      localStorage.removeItem('ts_token');
+      localStorage.removeItem('ts_user');
+      localStorage.removeItem('ts_permisos');
+      location.reload();
+    }, 3500);
+  } catch(e) {
+    if (statusEl) statusEl.textContent = '✗ ' + (e.message || e);
+    showToast('Error subiendo BD: ' + (e.message || e), 'error');
+  } finally {
+    $id('admin-db-upload-input').value = '';
+  }
+};
+
 // ===== SANDBOX =====
 async function loadSandboxes() {
   try {
