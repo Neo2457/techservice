@@ -55,8 +55,11 @@ import { importarPreview, importarConfirmar, importarClientesPreview, importarCl
 // Sandbox
 import { createSandbox, listSandboxes, deleteSandbox, resetSandbox } from '../controllers/sandboxController';
 
-// Admin DB (descargar/subir BD)
-import { downloadDatabase, uploadDatabase } from '../controllers/adminDbController';
+// Admin DB (descargar/subir BD + backups automáticos)
+import {
+  downloadDatabase, uploadDatabase,
+  listBackupsHandler, backupNowHandler, restoreBackupHandler, deleteBackupHandler,
+} from '../controllers/adminDbController';
 
 const router = Router();
 
@@ -213,5 +216,10 @@ router.put('/sandbox/:id/reset', authMiddleware, rootOnly, resetSandbox);
 router.get('/admin/database/download',  authMiddleware, rootOnly, downloadDatabase);
 router.post('/admin/database/upload',   authMiddleware, rootOnly,
   raw({ type: 'application/octet-stream', limit: '200mb' }), uploadDatabase);
+// Backups automáticos
+router.get('/admin/database/backups',            authMiddleware, rootOnly, listBackupsHandler);
+router.post('/admin/database/backup-now',        authMiddleware, rootOnly, backupNowHandler);
+router.post('/admin/database/restore',           authMiddleware, rootOnly, restoreBackupHandler);
+router.delete('/admin/database/backups/:name',   authMiddleware, rootOnly, deleteBackupHandler);
 
 export default router;

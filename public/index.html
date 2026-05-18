@@ -1517,6 +1517,34 @@
           Se crea un backup interno antes de sobrescribir. Cierra sesiones activas antes de hacer esto.
         </div>
       </div>
+
+      <!-- Backups automáticos (root) -->
+      <div class="widget" style="margin-top:24px;padding:20px 22px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+          <div style="width:34px;height:34px;border-radius:8px;background:rgba(0,212,170,0.12);display:flex;align-items:center;justify-content:center;color:var(--accent3);"><i class="fa-solid fa-clock-rotate-left"></i></div>
+          <div style="flex:1;">
+            <div style="font-weight:700;font-size:15px;">Backups automáticos</div>
+            <div style="font-size:12px;color:var(--text2);" id="admin-bk-info">Se crean periódicamente y se restauran solos si la BD aparece vacía al arrancar.</div>
+          </div>
+          <button class="btn-outline" onclick="adminLoadBackups()" style="font-size:12px;padding:6px 12px;">
+            <i class="fa-solid fa-rotate"></i> Refrescar
+          </button>
+          <button class="btn-accent" onclick="adminBackupNow()" style="font-size:12px;padding:6px 12px;">
+            <i class="fa-solid fa-floppy-disk"></i> Respaldar ahora
+          </button>
+        </div>
+
+        <div id="admin-bk-list" style="max-height:300px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;background:var(--bg3);">
+          <div style="padding:20px;text-align:center;color:var(--text3);font-size:13px;">Click en "Refrescar" para cargar la lista de backups.</div>
+        </div>
+
+        <div style="margin-top:10px;font-size:11px;color:var(--text3);line-height:1.5;">
+          <i class="fa-solid fa-info-circle"></i>
+          Los backups se guardan en <code>data/backups/</code> dentro del bind mount, así que persisten entre redeploys.
+          Si la BD principal aparece vacía al iniciar el servidor (típicamente después de un push que recreó el contenedor),
+          se restaura automáticamente el backup más reciente sin intervención.
+        </div>
+      </div>
     </section>
 
     <!-- PROFILE -->

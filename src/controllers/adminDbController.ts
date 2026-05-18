@@ -9,6 +9,9 @@ import { Request, Response } from 'express';
 import fs from 'fs';
 import path from 'path';
 import { persistDB, getDB } from '../config/db';
+import {
+  listBackups, backupNow, restoreFromBackup, deleteBackup, getBackupInfo,
+} from '../utils/autoBackup';
 
 const DB_PATH = path.resolve(process.env.DB_PATH || './database/techservice.db');
 
@@ -100,5 +103,71 @@ export const uploadDatabase = async (req: Request, res: Response): Promise<void>
   } catch (e: any) {
     console.error('[admin] Error al subir BD:', e);
     res.status(500).json({ error: 'Error al subir la BD: ' + (e?.message || e) });
+  }
+};
+
+// ───────────────────────────────────────────────────────────────────────────
+// Backups automáticos: listar / crear / restaurar / borrar
+// ───────────────────────────────────────────────────────────────────────────
+
+// GET /api/admin/database/backups
+export const listBackupsHandler = async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const backups = listBackups().map(b => ({
+      name: b.name,
+      size: b.size,
+      mtime: b.mtime.toISOString(),
+    }));
+    res.json({ ok: true, info: getBackupInfo(), backups });
+  } catch (e: any) {
+    res.status(500).json({ error: 'No se pudo listar los backups: ' + (e?.message || e) });
+  }
+};
+
+// POST /api/admin/database/backup-now
+// Persiste la BD en memoria a disco y luego crea un backup inmediato.
+export const backupNowHandler = async (_req: Request, res: Response): Promise<void> => {
+  try {
+    await getDB();
+    persistDB();
+    const name = backupNow();
+    if (!name) {
+      res.status(400).json({ error: 'No hay BD que respaldar o no superó el tamaño mínimo' });
+      return;
+    }
+    res.json({ ok: true, name });
+  } catch (e: any) {
+    res.status(500).json({ error: 'Error al crear backup: ' + (e?.message || e) });
+  }
+};
+
+// POST /api/admin/database/restore
+// Body: { name: "techservice-..." }
+// Restaura desde un backup específico y reinicia el proceso.
+export const restoreBackupHandler = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { name } = req.body || {};
+    if (!name || typeof name !== 'string') {
+      res.status(400).json({ error: 'name de backup requerido' }); return;
+    }
+    const ok = restoreFromBackup(name);
+    if (!ok) { res.status(404).json({ error: 'Backup no encontrado' }); return; }
+    res.json({ ok: true, message: 'Backup restaurado. El servidor se reiniciará en 1 segundo.' });
+    setTimeout(() => process.exit(0), 1000);
+  } catch (e: any) {
+    res.status(500).json({ error: 'Error al restaurar backup: ' + (e?.message || e) });
+  }
+};
+
+// DELETE /api/admin/database/backups/:name — borra un backup específico
+export const deleteBackupHandler = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const name = req.params.name;
+    if (!name) { res.status(400).json({ error: 'name requerido' }); return; }
+    const ok = deleteBackup(name);
+    if (!ok) { res.status(404).json({ error: 'Backup no encontrado' }); return; }
+    res.json({ ok: true });
+  } catch (e: any) {
+    res.status(500).json({ error: 'Error al borrar backup: ' + (e?.message || e) });
   }
 };

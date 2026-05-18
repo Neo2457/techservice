@@ -1659,6 +1659,13 @@ const WA_DEFAULT_MSGS = {
 
 
 async function api(method, path, body) {
+  // Guard: detectar URLs malformadas con 'undefined' o 'null' como segmento.
+  // En vez de salir con 403/404 silencioso, logueamos el stack y abortamos.
+  if (typeof path === 'string' && /\/(undefined|null)(\/|\?|$)/.test(path)) {
+    console.warn('[api] URL malformada bloqueada (segmento undefined/null):', method, path);
+    console.trace();
+    throw new Error('URL inválida: ' + path);
+  }
   const opts = { method, headers: { 'Content-Type': 'application/json' } };
   if (token) opts.headers['Authorization'] = 'Bearer ' + token;
   if (body) opts.body = JSON.stringify(body);
@@ -3062,10 +3069,14 @@ async function initWaScopeSelector() {
   const sel = $id('cfg-wa-scope');
   if (!sel) return;
   const isRoot = currentUserData?.tipo === 'root';
+  // Fallback ambos: el backend devuelve empresa_id (snake_case) en el login,
+  // pero el JWT lo decodifica como empresaId (camelCase). Aceptamos cualquiera.
+  const userEmpresaId = currentUserData?.empresa_id ?? currentUserData?.empresaId;
   const empresaId = isRoot
-    ? (parseInt($id('config-empresa-select')?.value) || currentUserData?.empresaId)
-    : currentUserData?.empresaId;
+    ? (parseInt($id('config-empresa-select')?.value) || userEmpresaId)
+    : userEmpresaId;
   sel.innerHTML = '<option value="">General (todas las sucursales)</option>';
+  if (!empresaId) return; // sin empresa válida, no hacemos la llamada
   try {
     const locales = await api('GET', '/empresas/' + empresaId + '/locales');
     locales.forEach(l => {
@@ -5284,6 +5295,84 @@ window.adminDownloadDB = async function() {
   }
 };
 
+// === Gestión de backups automáticos ===
+window.adminLoadBackups = async function() {
+  const statusEl  = $id('admin-bk-info');
+  const listEl    = $id('admin-bk-list');
+  if (listEl) listEl.innerHTML = `<div style="padding:18px;text-align:center;color:var(--text3);font-size:13px;"><i class="fa-solid fa-spinner fa-spin"></i> Cargando…</div>`;
+  try {
+    const data = await api('GET', '/admin/database/backups');
+    const info = data.info || {};
+    const backups = data.backups || [];
+    if (statusEl) {
+      statusEl.textContent = `Cada ${info.interval_minutes} min · Conserva los últimos ${info.keep_max} · ${backups.length} disponibles en disco`;
+    }
+    if (!backups.length) {
+      listEl.innerHTML = `<div style="padding:20px;text-align:center;color:var(--text3);font-size:13px;">No hay backups todavía. El primero se crea ~30s después del arranque.</div>`;
+      return;
+    }
+    listEl.innerHTML = backups.map(b => {
+      const sizeKB = (b.size / 1024).toFixed(0);
+      const dt = new Date(b.mtime).toLocaleString('es-MX', { dateStyle:'short', timeStyle:'short' });
+      return `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);">
+        <i class="fa-solid fa-file-code" style="color:var(--accent);"></i>
+        <div style="flex:1;min-width:0;">
+          <div style="font-family:monospace;font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(b.name)}</div>
+          <div style="font-size:11px;color:var(--text3);">${dt} · ${sizeKB} KB</div>
+        </div>
+        <button class="btn-outline" onclick="adminRestoreBackup('${escHtml(b.name).replace(/'/g, "\\'")}')" style="font-size:11px;padding:5px 10px;color:var(--accent);" title="Restaurar este backup (reinicia el servidor)">
+          <i class="fa-solid fa-rotate-left"></i> Restaurar
+        </button>
+        <button class="btn-outline" onclick="adminDeleteBackup('${escHtml(b.name).replace(/'/g, "\\'")}')" style="font-size:11px;padding:5px 10px;color:var(--danger);" title="Borrar este backup">
+          <i class="fa-solid fa-trash"></i>
+        </button>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    listEl.innerHTML = `<div style="padding:20px;text-align:center;color:var(--danger);font-size:13px;">Error: ${escHtml(e.message || e)}</div>`;
+  }
+};
+
+window.adminBackupNow = async function() {
+  try {
+    const r = await api('POST', '/admin/database/backup-now');
+    showToast('Backup creado: ' + r.name, 'success');
+    adminLoadBackups();
+  } catch(e) {
+    showToast('Error: ' + (e.message || e), 'error');
+  }
+};
+
+window.adminRestoreBackup = async function(name) {
+  if (!confirm(`¿Restaurar "${name}"?\n\nLa BD actual se reemplazará con este backup y el servidor se reiniciará automáticamente. Todas las sesiones se cerrarán.`)) return;
+  try {
+    await api('POST', '/admin/database/restore', { name });
+    showToast('Backup restaurado. Reiniciando servidor…', 'success');
+    setTimeout(() => {
+      localStorage.removeItem('ts_token');
+      localStorage.removeItem('ts_user');
+      localStorage.removeItem('ts_permisos');
+      location.reload();
+    }, 3500);
+  } catch(e) {
+    showToast('Error: ' + (e.message || e), 'error');
+  }
+};
+
+window.adminDeleteBackup = async function(name) {
+  if (!confirm(`¿Borrar el backup "${name}"?\nEsta acción no se puede deshacer.`)) return;
+  try {
+    await fetch('/api/admin/database/backups/' + encodeURIComponent(name), {
+      method: 'DELETE',
+      headers: { 'Authorization': 'Bearer ' + token },
+    }).then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); });
+    showToast('Backup borrado', 'success');
+    adminLoadBackups();
+  } catch(e) {
+    showToast('Error: ' + (e.message || e), 'error');
+  }
+};
+
 window.adminUploadDB = async function(file) {
   if (!file) return;
   const statusEl = $id('admin-db-status');
@@ -5326,6 +5415,8 @@ window.adminUploadDB = async function(file) {
 
 // ===== SANDBOX =====
 async function loadSandboxes() {
+  // Cargar también la lista de backups automáticos (no bloqueante).
+  try { adminLoadBackups(); } catch(e) {}
   try {
     const sandboxes = await api('GET', '/sandbox');
     const container = $id('sandbox-list');

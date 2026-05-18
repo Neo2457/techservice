@@ -7,6 +7,7 @@ import dotenv from 'dotenv';
 import { initDB } from './config/initDB';
 import routes from './routes/index';
 import { startAutoCorteScheduler } from './utils/autoCorte';
+import { restoreFromLatestIfEmpty, startBackupScheduler } from './utils/autoBackup';
 
 dotenv.config();
 
@@ -45,9 +46,15 @@ app.get('*', (_req, res) => {
   res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
+// Auto-restore ANTES de initDB: si la BD destino está vacía o no existe (caso
+// típico después de un redeploy que borró el volumen) y hay backups, copiamos
+// el más reciente a la ruta esperada. Así initDB carga la BD real.
+const restored = restoreFromLatestIfEmpty();
+
 // Iniciar BD primero, luego el servidor
 initDB().then(() => {
   startAutoCorteScheduler();
+  startBackupScheduler();
   app.listen(PORT, () => {
     console.log('');
     console.log('  ╔════════════════════════════════════════╗');
@@ -55,6 +62,7 @@ initDB().then(() => {
     console.log(`  ║   http://localhost:${PORT}               ║`);
     console.log('  ╚════════════════════════════════════════╝');
     console.log('');
+    if (restored) console.log('  ↺  BD restaurada automáticamente desde el backup más reciente.');
   });
 }).catch(err => {
   console.error('Error iniciando BD:', err);
