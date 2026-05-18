@@ -4280,15 +4280,42 @@ async function loadConfiguracion() {
     const corteHoraEl = $id('cfg-corte-hora');
     if (corteHoraEl) corteHoraEl.value = currentConfig.corte_hora || '22:00';
 
-    // Ticket venta config
-    const tvLogo = $id('cfg-tv-logo'); if (tvLogo) tvLogo.checked = currentConfig.ticket_venta_mostrar_logo !== 0;
-    const tvEmp  = $id('cfg-tv-empresa'); if (tvEmp) tvEmp.checked = currentConfig.ticket_venta_mostrar_empresa !== 0;
-    const tvFol  = $id('cfg-tv-folio'); if (tvFol) tvFol.checked = currentConfig.ticket_venta_mostrar_folio !== 0;
-    const tvFec  = $id('cfg-tv-fecha'); if (tvFec) tvFec.checked = currentConfig.ticket_venta_mostrar_fecha !== 0;
-    const tvCli  = $id('cfg-tv-cliente'); if (tvCli) tvCli.checked = !!currentConfig.ticket_venta_mostrar_cliente;
-    const tvIte  = $id('cfg-tv-items'); if (tvIte) tvIte.checked = currentConfig.ticket_venta_mostrar_items !== 0;
-    const tvMet  = $id('cfg-tv-metodo'); if (tvMet) tvMet.checked = currentConfig.ticket_venta_mostrar_metodo !== 0;
-    const tvFoot = $id('cfg-tv-footer'); if (tvFoot) tvFoot.value = currentConfig.ticket_venta_footer ?? 'Gracias por su compra';
+    // Ticket venta config (toggles + textos)
+    const _setChk = (id, val, def = 1) => { const e = $id(id); if (e) e.checked = (val === undefined || val === null) ? !!def : val !== 0; };
+    const _setVal = (id, val, def = '') => { const e = $id(id); if (e) e.value = val ?? def; };
+    _setChk('cfg-tv-logo',      currentConfig.ticket_venta_mostrar_logo, 1);
+    _setChk('cfg-tv-empresa',   currentConfig.ticket_venta_mostrar_empresa, 1);
+    _setChk('cfg-tv-direccion', currentConfig.ticket_venta_mostrar_direccion, 0);
+    _setChk('cfg-tv-telefono',  currentConfig.ticket_venta_mostrar_telefono, 1);
+    _setChk('cfg-tv-rfc',       currentConfig.ticket_venta_mostrar_rfc, 1);
+    _setChk('cfg-tv-folio',     currentConfig.ticket_venta_mostrar_folio, 1);
+    _setChk('cfg-tv-fecha',     currentConfig.ticket_venta_mostrar_fecha, 1);
+    _setChk('cfg-tv-cliente',   currentConfig.ticket_venta_mostrar_cliente, 0);
+    _setChk('cfg-tv-vendedor',  currentConfig.ticket_venta_mostrar_vendedor, 1);
+    _setChk('cfg-tv-items',     currentConfig.ticket_venta_mostrar_items, 1);
+    _setChk('cfg-tv-codigos',   currentConfig.ticket_venta_mostrar_codigos, 1);
+    _setChk('cfg-tv-subtotal',  currentConfig.ticket_venta_mostrar_subtotal, 1);
+    _setChk('cfg-tv-descuento', currentConfig.ticket_venta_mostrar_descuento, 1);
+    _setChk('cfg-tv-total',     currentConfig.ticket_venta_mostrar_total, 1);
+    _setChk('cfg-tv-metodo',    currentConfig.ticket_venta_mostrar_metodo, 1);
+    _setChk('cfg-tv-gracias',   currentConfig.ticket_venta_mostrar_gracias, 1);
+    _setVal('cfg-tv-titulo',     currentConfig.ticket_venta_titulo, 'TICKET DE VENTA');
+    _setVal('cfg-tv-footer',     currentConfig.ticket_venta_footer, 'Gracias por su compra');
+    _setVal('cfg-tv-texto-extra',currentConfig.ticket_venta_texto_extra, '');
+    _setVal('cfg-tv-ancho',      String(currentConfig.ticket_venta_ancho_mm || 58), '58');
+    _setVal('cfg-tv-imagen-size',String(currentConfig.ticket_venta_imagen_extra_size || 60), '60');
+    _setVal('cfg-tv-imagen-pos', currentConfig.ticket_venta_imagen_extra_pos, 'final');
+    // Preview de la imagen extra del ticket de venta
+    const tvImg = currentConfig.ticket_venta_imagen_extra;
+    const tvImgPrev = $id('cfg-tv-imagen-preview');
+    if (tvImgPrev) {
+      if (tvImg) {
+        tvImgPrev.innerHTML = `<img src="${tvImg}" alt="extra" style="max-width:100%;max-height:120px;border-radius:6px;border:1px solid var(--border);">`;
+      } else {
+        tvImgPrev.innerHTML = `<div style="color:var(--text3);font-size:12px;padding:18px;border:1px dashed var(--border);border-radius:8px;">Sin imagen</div>`;
+      }
+    }
+    window._cfgTvImagenData = tvImg || null;
 
     // WA Notifications config — init scope selector (renders form async)
     try {
@@ -4305,6 +4332,12 @@ async function loadConfiguracion() {
 
     onLogoModeChange();
     loadPlantillas();
+
+    // Dibujar previews iniciales de ambos tickets (esperamos a que el DOM se asiente)
+    setTimeout(() => {
+      try { refreshTsPreview(); } catch(e) {}
+      try { refreshTvPreview(); } catch(e) {}
+    }, 100);
   } catch(e) { showToast(e.message, 'error'); }
 }
 
@@ -4355,6 +4388,36 @@ function cfgRemoveImagenExtra() {
   showToast('Imagen marcada para quitar. Guarda la configuración para aplicar.', 'info');
 }
 
+// === Imagen extra del TICKET DE VENTA ===
+// Guarda el dataURL en window._cfgTvImagenData y refleja en preview.
+window.cfgTvHandleImagen = function(file) {
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { showToast('Selecciona una imagen válida', 'error'); return; }
+  if (file.size > 1.5 * 1024 * 1024) {
+    showToast('Imagen muy pesada (máx 1.5MB). Compárala antes de subir.', 'error');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = e => {
+    window._cfgTvImagenData = e.target.result;
+    const prev = $id('cfg-tv-imagen-preview');
+    if (prev) prev.innerHTML = `<img src="${e.target.result}" alt="extra" style="max-width:100%;max-height:120px;border-radius:6px;border:1px solid var(--border);">`;
+    try { refreshTvPreview(); } catch(e) {}
+    showToast('Imagen lista. Recuerda guardar la configuración.', 'info');
+  };
+  reader.readAsDataURL(file);
+};
+
+window.cfgTvQuitarImagen = function() {
+  if (!window._cfgTvImagenData) { showToast('No hay imagen para quitar', 'info'); return; }
+  if (!confirm('¿Quitar la imagen extra del ticket de venta?')) return;
+  window._cfgTvImagenData = null;
+  const prev = $id('cfg-tv-imagen-preview');
+  if (prev) prev.innerHTML = `<div style="color:var(--text3);font-size:12px;padding:18px;border:1px dashed var(--border);border-radius:8px;">Sin imagen</div>`;
+  try { refreshTvPreview(); } catch(e) {}
+  showToast('Imagen marcada para quitar. Guarda la configuración para aplicar.', 'info');
+};
+
 function onCorteAutomaticoChange() {
   const auto = $id('cfg-corte-automatico')?.checked;
   const grupo = $id('cfg-corte-hora-group');
@@ -4383,14 +4446,29 @@ async function saveConfiguracion() {
     etiqueta_alto: parseInt($id('cfg-etiqueta-alto').value) || 30,
     corte_automatico: $id('cfg-corte-automatico')?.checked ? 1 : 0,
     corte_hora: $id('cfg-corte-hora')?.value || '22:00',
-    ticket_venta_mostrar_logo:    $id('cfg-tv-logo')?.checked    ? 1 : 0,
-    ticket_venta_mostrar_empresa: $id('cfg-tv-empresa')?.checked ? 1 : 0,
-    ticket_venta_mostrar_folio:   $id('cfg-tv-folio')?.checked   ? 1 : 0,
-    ticket_venta_mostrar_fecha:   $id('cfg-tv-fecha')?.checked   ? 1 : 0,
-    ticket_venta_mostrar_cliente: $id('cfg-tv-cliente')?.checked ? 1 : 0,
-    ticket_venta_mostrar_items:   $id('cfg-tv-items')?.checked   ? 1 : 0,
-    ticket_venta_mostrar_metodo:  $id('cfg-tv-metodo')?.checked  ? 1 : 0,
+    ticket_venta_titulo:          $id('cfg-tv-titulo')?.value?.trim() || 'TICKET DE VENTA',
+    ticket_venta_ancho_mm:        parseInt($id('cfg-tv-ancho')?.value) || 58,
+    ticket_venta_mostrar_logo:    $id('cfg-tv-logo')?.checked      ? 1 : 0,
+    ticket_venta_mostrar_empresa: $id('cfg-tv-empresa')?.checked   ? 1 : 0,
+    ticket_venta_mostrar_direccion:$id('cfg-tv-direccion')?.checked ? 1 : 0,
+    ticket_venta_mostrar_telefono:$id('cfg-tv-telefono')?.checked  ? 1 : 0,
+    ticket_venta_mostrar_rfc:     $id('cfg-tv-rfc')?.checked       ? 1 : 0,
+    ticket_venta_mostrar_folio:   $id('cfg-tv-folio')?.checked     ? 1 : 0,
+    ticket_venta_mostrar_fecha:   $id('cfg-tv-fecha')?.checked     ? 1 : 0,
+    ticket_venta_mostrar_cliente: $id('cfg-tv-cliente')?.checked   ? 1 : 0,
+    ticket_venta_mostrar_vendedor:$id('cfg-tv-vendedor')?.checked  ? 1 : 0,
+    ticket_venta_mostrar_items:   $id('cfg-tv-items')?.checked     ? 1 : 0,
+    ticket_venta_mostrar_codigos: $id('cfg-tv-codigos')?.checked   ? 1 : 0,
+    ticket_venta_mostrar_subtotal:$id('cfg-tv-subtotal')?.checked  ? 1 : 0,
+    ticket_venta_mostrar_descuento:$id('cfg-tv-descuento')?.checked? 1 : 0,
+    ticket_venta_mostrar_total:   $id('cfg-tv-total')?.checked     ? 1 : 0,
+    ticket_venta_mostrar_metodo:  $id('cfg-tv-metodo')?.checked    ? 1 : 0,
+    ticket_venta_mostrar_gracias: $id('cfg-tv-gracias')?.checked   ? 1 : 0,
     ticket_venta_footer:          $id('cfg-tv-footer')?.value?.trim() || 'Gracias por su compra',
+    ticket_venta_texto_extra:     $id('cfg-tv-texto-extra')?.value?.trim() || null,
+    ticket_venta_imagen_extra:    window._cfgTvImagenData || null,
+    ticket_venta_imagen_extra_size:parseInt($id('cfg-tv-imagen-size')?.value) || 60,
+    ticket_venta_imagen_extra_pos:$id('cfg-tv-imagen-pos')?.value  || 'final',
     // Toggles granulares del ticket de servicio (helper: 1 si checked, 0 si no)
     ticket_mostrar_folio:            $id('cfg-mostrar-folio')?.checked            ? 1 : 0,
     ticket_mostrar_cliente_nombre:   $id('cfg-mostrar-cliente-nombre')?.checked   ? 1 : 0,
@@ -4940,6 +5018,117 @@ function previewPlantilla() {
   $id('ticket-print-area').innerHTML = _buildTicketPreviewHTML('plt');
   $id('ticket-modal').classList.add('open');
 }
+
+// === Preview en vivo del TICKET DE SERVICIO (embebido en iframe) ===
+window.refreshTsPreview = function() {
+  const iframe = $id('cfg-ts-preview');
+  if (!iframe) return;
+  try {
+    const body = _buildTicketPreviewHTML('cfg');
+    const html = `<!doctype html><html><head><meta charset="utf-8"><style>
+      body{margin:0;padding:8px 6px;font-family:Arial,sans-serif;background:#fff;color:#000;font-size:12px;}
+      img{max-width:100%;height:auto;}
+      hr{margin:6px 0;}
+    </style></head><body>${body}</body></html>`;
+    const doc = iframe.contentDocument || iframe.contentWindow.document;
+    doc.open(); doc.write(html); doc.close();
+  } catch(e) { console.warn('[refreshTsPreview]', e); }
+};
+
+// === Preview en vivo del TICKET DE VENTA (embebido en iframe) ===
+// Construye un ticket de venta a partir de los inputs del config + datos de
+// ejemplo (no necesita una venta real para mostrarse).
+function _buildTicketVentaPreviewFromUi() {
+  const ck = (id, def = true) => { const el = $id(id); return el ? !!el.checked : def; };
+  const v  = (id, def = '') => $id(id)?.value ?? def;
+
+  // Datos de ejemplo
+  const empresaNombre = currentConfig?.empresa_nombre || (currentUserData?.empresa_nombre || 'Tu empresa');
+  const ejemploVenta = {
+    folio_venta: 'V-DEMO-00123',
+    fecha_finalizacion: new Date().toISOString(),
+    subtotal: 350,
+    descuento: 50,
+    total: 300,
+    cliente_nombre: 'Juan Pérez',
+    usuario_nombre: currentUserData?.nombre || 'Cajero demo',
+    empresa_nombre: empresaNombre,
+    empresa_calle: 'Av. Principal 123',
+    empresa_ciudad: 'Guadalajara',
+    empresa_telefono: '33 1234 5678',
+    empresa_rfc: 'XAXX010101000',
+    nombre_local: 'Sucursal Centro',
+  };
+  const ejemploItems = [
+    { producto_nombre: 'Mica cristal templado',  codigo: '7501234567890', cantidad: 2, precio_unitario: 80,  subtotal: 160 },
+    { producto_nombre: 'Funda transparente',     codigo: '7501234567891', cantidad: 1, precio_unitario: 90,  subtotal: 90  },
+    { producto_nombre: 'Cargador USB-C 20W',     codigo: '7501234567892', cantidad: 1, precio_unitario: 100, subtotal: 100 },
+  ];
+  const ejemploPagos = [
+    { metodo: 'efectivo', monto: 300 },
+  ];
+
+  // Config sintética desde los inputs
+  const cfg = {
+    ticket_venta_titulo:           v('cfg-tv-titulo', 'TICKET DE VENTA'),
+    ticket_venta_ancho_mm:         parseInt(v('cfg-tv-ancho', '58')) || 58,
+    ticket_venta_mostrar_logo:     ck('cfg-tv-logo', true)     ? 1 : 0,
+    ticket_venta_mostrar_empresa:  ck('cfg-tv-empresa', true)  ? 1 : 0,
+    ticket_venta_mostrar_direccion:ck('cfg-tv-direccion', false)? 1 : 0,
+    ticket_venta_mostrar_telefono: ck('cfg-tv-telefono', true) ? 1 : 0,
+    ticket_venta_mostrar_rfc:      ck('cfg-tv-rfc', true)      ? 1 : 0,
+    ticket_venta_mostrar_folio:    ck('cfg-tv-folio', true)    ? 1 : 0,
+    ticket_venta_mostrar_fecha:    ck('cfg-tv-fecha', true)    ? 1 : 0,
+    ticket_venta_mostrar_cliente:  ck('cfg-tv-cliente', false) ? 1 : 0,
+    ticket_venta_mostrar_vendedor: ck('cfg-tv-vendedor', true) ? 1 : 0,
+    ticket_venta_mostrar_items:    ck('cfg-tv-items', true)    ? 1 : 0,
+    ticket_venta_mostrar_codigos:  ck('cfg-tv-codigos', true)  ? 1 : 0,
+    ticket_venta_mostrar_subtotal: ck('cfg-tv-subtotal', true) ? 1 : 0,
+    ticket_venta_mostrar_descuento:ck('cfg-tv-descuento', true)? 1 : 0,
+    ticket_venta_mostrar_total:    ck('cfg-tv-total', true)    ? 1 : 0,
+    ticket_venta_mostrar_metodo:   ck('cfg-tv-metodo', true)   ? 1 : 0,
+    ticket_venta_mostrar_gracias:  ck('cfg-tv-gracias', true)  ? 1 : 0,
+    ticket_venta_footer:           v('cfg-tv-footer', 'Gracias por su compra'),
+    ticket_venta_texto_extra:      v('cfg-tv-texto-extra', ''),
+    ticket_venta_imagen_extra:     window._cfgTvImagenData || null,
+    ticket_venta_imagen_extra_size:parseInt(v('cfg-tv-imagen-size', '60')) || 60,
+    ticket_venta_imagen_extra_pos: v('cfg-tv-imagen-pos', 'final'),
+  };
+
+  // Logo: tomamos el actual de la empresa si está cargado
+  const logo = currentConfig?.empresa_logo || currentConfig?.logo || '';
+
+  return buildVentaTicketHtml({ venta: ejemploVenta, items: ejemploItems, pagos: ejemploPagos, config: cfg, logo });
+}
+
+window.refreshTvPreview = function() {
+  const iframe = $id('cfg-tv-preview');
+  if (!iframe) return;
+  try {
+    const html = _buildTicketVentaPreviewFromUi();
+    const doc = iframe.contentDocument || iframe.contentWindow.document;
+    doc.open(); doc.write(html); doc.close();
+  } catch(e) { console.warn('[refreshTvPreview]', e); }
+};
+
+// Conecta event delegation a los accordions de ticket-venta y ticket-servicio
+// para que cualquier cambio en sus inputs dispare el preview correspondiente.
+(function bindTicketPreviewAutorefresh() {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bindTicketPreviewAutorefresh);
+    return;
+  }
+  const tv = document.getElementById('cfg-collapse-ticket-venta');
+  if (tv) {
+    tv.addEventListener('input',  () => refreshTvPreview());
+    tv.addEventListener('change', () => refreshTvPreview());
+  }
+  const ts = document.getElementById('cfg-collapse-ticket-servicio');
+  if (ts) {
+    ts.addEventListener('input',  () => refreshTsPreview());
+    ts.addEventListener('change', () => refreshTsPreview());
+  }
+})();
 
 function printTicket() {
   const content = $id('ticket-print-area').innerHTML;
@@ -5790,101 +5979,151 @@ function closeVentaSuccessModal() {
   $id('venta-success-modal').classList.remove('open');
 }
 
-async function printVentaTicket() {
-  if (!lastVentaId) return;
-  try {
-    const data = await api('GET', '/ticket-venta/' + lastVentaId);
-    const { venta, items, pagos, config, logo } = data;
-    const cfg = config || {};
-    const fmt = d => { if (!d) return '-'; const dt = new Date(d); return dt.toLocaleString('es-MX', { dateStyle:'short', timeStyle:'short' }); };
-    const fmtMoney = n => '$' + Number(n || 0).toFixed(2);
-    const metodosLabel = { efectivo: t('metodo.efectivo'), tarjeta: t('metodo.tarjeta'), transferencia: t('metodo.transferencia'), credito: t('metodo.credito'), mixto: t('metodo.split') };
+// Construye el HTML del ticket de venta a partir de la respuesta del endpoint
+// /ticket-venta/:id. Usado por printVentaTicket (POS) y rvPrintTicket (reportes).
+function buildVentaTicketHtml(data) {
+  const { venta, items, pagos, config, logo } = data;
+  const cfg = config || {};
+  const fmt = d => { if (!d) return '-'; return new Date(d).toLocaleString('es-MX', { dateStyle:'short', timeStyle:'short' }); };
+  const fmtMoney = n => '$' + Number(n || 0).toFixed(2);
+  const metodosLabel = { efectivo: t('metodo.efectivo'), tarjeta: t('metodo.tarjeta'), transferencia: t('metodo.transferencia'), credito: t('metodo.credito'), mixto: t('metodo.mixto') };
 
-    let html = `<!DOCTYPE html><html><head><meta charset="utf-8">
+  // Ancho configurable (58 ó 80 mm). Aplicamos un margen interno de ~4mm.
+  const anchoMm = parseInt(cfg.ticket_venta_ancho_mm) || 58;
+  const bodyWidth = (anchoMm + 14) + 'mm'; // ancho visual incluye padding
+
+  // Construye el bloque de imagen extra para insertarlo en la posición elegida.
+  const imgExtra = cfg.ticket_venta_imagen_extra || '';
+  const imgSize  = Math.max(10, Math.min(100, parseInt(cfg.ticket_venta_imagen_extra_size) || 60));
+  const imgBlock = imgExtra
+    ? `<div style="text-align:center;margin:8px 0;"><img src="${imgExtra}" style="max-width:${imgSize}%;height:auto;display:inline-block;" alt="extra"></div>`
+    : '';
+  const imgPos = (cfg.ticket_venta_imagen_extra_pos || 'final').toLowerCase();
+
+  const titulo = (cfg.ticket_venta_titulo || 'TICKET DE VENTA').trim();
+
+  let html = `<!DOCTYPE html><html><head><meta charset="utf-8">
 <title>Ticket ${venta.folio_venta}</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box;}
-  body{font-family:monospace;font-size:12px;color:#000;background:#fff;width:72mm;margin:0 auto;padding:4mm;}
+  body{font-family:monospace;font-size:12px;color:#000;background:#fff;width:${bodyWidth};margin:0 auto;padding:4mm;}
   .center{text-align:center;} .right{text-align:right;} .bold{font-weight:bold;}
   .line{border-top:1px dashed #000;margin:6px 0;}
   .row{display:flex;justify-content:space-between;margin:2px 0;}
-  .logo{max-width:60mm;max-height:25mm;margin:0 auto 6px;display:block;}
+  .logo{max-width:${Math.min(60, anchoMm - 8)}mm;max-height:25mm;margin:0 auto 6px;display:block;}
+  .titulo{text-align:center;font-weight:bold;font-size:13px;margin:4px 0;letter-spacing:.5px;}
   .total-row{font-size:15px;font-weight:bold;margin:4px 0;}
   table{width:100%;border-collapse:collapse;margin:4px 0;}
   th{text-align:left;font-size:11px;border-bottom:1px solid #000;padding:2px 0;}
   td{font-size:11px;padding:2px 0;vertical-align:top;}
   td.r{text-align:right;}
   .footer{text-align:center;margin-top:8px;font-size:11px;color:#333;}
+  .extra-text{text-align:center;margin-top:6px;font-size:11px;color:#333;white-space:pre-wrap;}
   @media print{body{margin:0;}}
 </style></head><body>`;
 
-    // Logo
-    if (cfg.ticket_venta_mostrar_logo && logo) {
-      html += `<img class="logo" src="${logo}" alt="logo">`;
-    }
+  // Logo
+  if (cfg.ticket_venta_mostrar_logo !== 0 && logo) {
+    html += `<img class="logo" src="${logo}" alt="logo">`;
+  }
+  if (imgPos === 'inicio') html += imgBlock;
 
-    // Empresa
-    if (cfg.ticket_venta_mostrar_empresa) {
-      html += `<div class="center bold" style="font-size:14px;">${venta.empresa_nombre || ''}</div>`;
-      if (venta.nombre_local) html += `<div class="center">${venta.nombre_local}</div>`;
-      if (venta.empresa_calle) html += `<div class="center">${venta.empresa_calle}${venta.empresa_ciudad ? ', ' + venta.empresa_ciudad : ''}</div>`;
-      if (venta.empresa_telefono) html += `<div class="center">Tel: ${venta.empresa_telefono}</div>`;
-      if (venta.empresa_rfc) html += `<div class="center">RFC: ${venta.empresa_rfc}</div>`;
-    }
+  // Título personalizado
+  if (titulo) html += `<div class="titulo">${escHtml(titulo)}</div>`;
 
+  // Empresa
+  if (cfg.ticket_venta_mostrar_empresa !== 0) {
+    html += `<div class="center bold" style="font-size:14px;">${escHtml(venta.empresa_nombre || '')}</div>`;
+    if (venta.nombre_local) html += `<div class="center">${escHtml(venta.nombre_local)}</div>`;
+    if (cfg.ticket_venta_mostrar_direccion !== 0 && venta.empresa_calle) {
+      html += `<div class="center">${escHtml(venta.empresa_calle)}${venta.empresa_ciudad ? ', ' + escHtml(venta.empresa_ciudad) : ''}</div>`;
+    }
+    if (cfg.ticket_venta_mostrar_telefono !== 0 && venta.empresa_telefono) {
+      html += `<div class="center">Tel: ${escHtml(venta.empresa_telefono)}</div>`;
+    }
+    if (cfg.ticket_venta_mostrar_rfc !== 0 && venta.empresa_rfc) {
+      html += `<div class="center">RFC: ${escHtml(venta.empresa_rfc)}</div>`;
+    }
+  }
+
+  html += `<div class="line"></div>`;
+
+  // Datos de la venta
+  if (cfg.ticket_venta_mostrar_folio !== 0) {
+    html += `<div class="row"><span class="bold">Folio:</span><span>${escHtml(venta.folio_venta)}</span></div>`;
+  }
+  if (cfg.ticket_venta_mostrar_fecha !== 0) {
+    html += `<div class="row"><span>Fecha:</span><span>${fmt(venta.fecha_finalizacion || venta.fecha)}</span></div>`;
+  }
+  if (cfg.ticket_venta_mostrar_cliente !== 0 && venta.cliente_nombre) {
+    html += `<div class="row"><span>Cliente:</span><span>${escHtml(venta.cliente_nombre)}</span></div>`;
+  }
+  if (cfg.ticket_venta_mostrar_vendedor !== 0 && venta.usuario_nombre) {
+    html += `<div class="row"><span>Cajero:</span><span>${escHtml(venta.usuario_nombre)}</span></div>`;
+  }
+
+  if (imgPos === 'medio') html += imgBlock;
+
+  // Items
+  if (cfg.ticket_venta_mostrar_items !== 0 && items && items.length > 0) {
     html += `<div class="line"></div>`;
+    html += `<table><thead><tr><th>Producto</th><th class="r">Cant</th><th class="r">P.U.</th><th class="r">Total</th></tr></thead><tbody>`;
+    for (const it of items) {
+      const subCod = (cfg.ticket_venta_mostrar_codigos !== 0 && it.codigo)
+        ? `<br><small style="color:#666;">${escHtml(it.codigo)}</small>` : '';
+      html += `<tr>
+        <td>${escHtml(it.producto_nombre)}${subCod}</td>
+        <td class="r">${it.cantidad}</td>
+        <td class="r">${fmtMoney(it.precio_unitario)}</td>
+        <td class="r">${fmtMoney(it.subtotal)}</td>
+      </tr>`;
+    }
+    html += `</tbody></table>`;
+  }
 
-    // Folio + Fecha
-    if (cfg.ticket_venta_mostrar_folio) {
-      html += `<div class="row"><span class="bold">Folio:</span><span>${venta.folio_venta}</span></div>`;
-    }
-    if (cfg.ticket_venta_mostrar_fecha) {
-      html += `<div class="row"><span>Fecha:</span><span>${fmt(venta.fecha_finalizacion || venta.fecha)}</span></div>`;
-    }
-    if (cfg.ticket_venta_mostrar_cliente && venta.cliente_nombre) {
-      html += `<div class="row"><span>Cliente:</span><span>${venta.cliente_nombre}</span></div>`;
-    }
-    if (venta.usuario_nombre) {
-      html += `<div class="row"><span>Cajero:</span><span>${venta.usuario_nombre}</span></div>`;
-    }
-
-    // Items
-    if (cfg.ticket_venta_mostrar_items && items && items.length > 0) {
-      html += `<div class="line"></div>`;
-      html += `<table><thead><tr><th>Producto</th><th class="r">Cant</th><th class="r">P.U.</th><th class="r">Total</th></tr></thead><tbody>`;
-      for (const it of items) {
-        html += `<tr>
-          <td>${it.producto_nombre}${it.codigo ? '<br><small style="color:#666;">' + it.codigo + '</small>' : ''}</td>
-          <td class="r">${it.cantidad}</td>
-          <td class="r">${fmtMoney(it.precio_unitario)}</td>
-          <td class="r">${fmtMoney(it.subtotal)}</td>
-        </tr>`;
-      }
-      html += `</tbody></table>`;
-    }
-
-    html += `<div class="line"></div>`;
-    if (venta.descuento > 0) {
-      html += `<div class="row"><span>Descuento:</span><span>-${fmtMoney(venta.descuento)}</span></div>`;
-    }
+  // Totales
+  html += `<div class="line"></div>`;
+  if (cfg.ticket_venta_mostrar_subtotal !== 0 && venta.subtotal != null && Number(venta.subtotal) > 0) {
+    html += `<div class="row"><span>Subtotal:</span><span>${fmtMoney(venta.subtotal)}</span></div>`;
+  }
+  if (cfg.ticket_venta_mostrar_descuento !== 0 && Number(venta.descuento || 0) > 0) {
+    html += `<div class="row"><span>Descuento:</span><span>-${fmtMoney(venta.descuento)}</span></div>`;
+  }
+  if (cfg.ticket_venta_mostrar_total !== 0) {
     html += `<div class="row total-row"><span>TOTAL:</span><span>${fmtMoney(venta.total)}</span></div>`;
+  }
 
-    // Pagos
-    if (cfg.ticket_venta_mostrar_metodo && pagos && pagos.length > 0) {
-      html += `<div class="line"></div>`;
-      for (const p of pagos) {
-        html += `<div class="row"><span>${metodosLabel[p.metodo] || p.metodo}:</span><span>${fmtMoney(p.monto)}</span></div>`;
-      }
+  // Métodos de pago
+  if (cfg.ticket_venta_mostrar_metodo !== 0 && pagos && pagos.length > 0) {
+    html += `<div class="line"></div>`;
+    for (const p of pagos) {
+      html += `<div class="row"><span>${metodosLabel[p.metodo] || p.metodo}:</span><span>${fmtMoney(p.monto)}</span></div>`;
     }
+  }
 
-    // Footer
-    const footer = cfg.ticket_venta_footer || 'Gracias por su compra';
-    if (footer) {
-      html += `<div class="line"></div><div class="footer">${footer}</div>`;
-    }
+  // Gracias / pie
+  if (cfg.ticket_venta_mostrar_gracias !== 0) {
+    const footer = (cfg.ticket_venta_footer || 'Gracias por su compra').trim();
+    if (footer) html += `<div class="line"></div><div class="footer">${escHtml(footer)}</div>`;
+  }
 
-    html += `</body></html>`;
+  // Texto extra al final
+  const textoExtra = (cfg.ticket_venta_texto_extra || '').trim();
+  if (textoExtra) {
+    html += `<div class="extra-text">${escHtml(textoExtra)}</div>`;
+  }
 
+  if (imgPos === 'final') html += imgBlock;
+
+  html += `</body></html>`;
+  return html;
+}
+
+async function printVentaTicket() {
+  if (!lastVentaId) return;
+  try {
+    const data = await api('GET', '/ticket-venta/' + lastVentaId);
+    const html = buildVentaTicketHtml(data);
     const win = window.open('', '_blank', 'width=320,height=600');
     if (win) {
       win.document.write(html);
@@ -7566,46 +7805,7 @@ async function rvPrintTicket() {
   if (!rvCurrentVentaId) return;
   try {
     const data = await api('GET', '/ticket-venta/' + rvCurrentVentaId);
-    const { venta, items, pagos, config, logo } = data;
-    const cfg = config || {};
-    const fmtDt = d => { if (!d) return '—'; return new Date(d).toLocaleString('es-MX', { dateStyle:'short', timeStyle:'short' }); };
-    const fmtM  = n => '$' + Number(n || 0).toFixed(2);
-    const metodosLabel = { efectivo: t('metodo.efectivo'), tarjeta: t('metodo.tarjeta'), transferencia: t('metodo.transferencia'), credito: t('metodo.credito'), mixto: t('metodo.mixto') };
-
-    let html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Ticket ${venta.folio_venta}</title>
-<style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:monospace;font-size:12px;color:#000;background:#fff;width:72mm;margin:0 auto;padding:4mm;}.center{text-align:center;}.bold{font-weight:bold;}.line{border-top:1px dashed #000;margin:6px 0;}.row{display:flex;justify-content:space-between;margin:2px 0;}.logo{max-width:60mm;max-height:25mm;margin:0 auto 6px;display:block;}table{width:100%;border-collapse:collapse;margin:4px 0;}th{text-align:left;font-size:11px;border-bottom:1px solid #000;padding:2px 0;}td{font-size:11px;padding:2px 0;vertical-align:top;}td.r{text-align:right;}.footer{text-align:center;margin-top:8px;font-size:11px;}@media print{body{margin:0;}}</style>
-</head><body>`;
-
-    if (cfg.ticket_venta_mostrar_logo && logo) html += `<img class="logo" src="${logo}" alt="logo">`;
-    if (cfg.ticket_venta_mostrar_empresa) {
-      html += `<div class="center bold" style="font-size:14px;">${venta.empresa_nombre || ''}</div>`;
-      if (venta.nombre_local) html += `<div class="center">${venta.nombre_local}</div>`;
-      if (venta.empresa_calle) html += `<div class="center">${venta.empresa_calle}${venta.empresa_ciudad ? ', ' + venta.empresa_ciudad : ''}</div>`;
-      if (venta.empresa_telefono) html += `<div class="center">Tel: ${venta.empresa_telefono}</div>`;
-      if (venta.empresa_rfc) html += `<div class="center">RFC: ${venta.empresa_rfc}</div>`;
-    }
-    html += `<div class="line"></div>`;
-    if (cfg.ticket_venta_mostrar_folio) html += `<div class="row"><span class="bold">Folio:</span><span>${venta.folio_venta}</span></div>`;
-    if (cfg.ticket_venta_mostrar_fecha) html += `<div class="row"><span>Fecha:</span><span>${fmtDt(venta.fecha_finalizacion || venta.fecha)}</span></div>`;
-    if (cfg.ticket_venta_mostrar_cliente && venta.cliente_nombre) html += `<div class="row"><span>Cliente:</span><span>${venta.cliente_nombre}</span></div>`;
-    if (venta.usuario_nombre) html += `<div class="row"><span>Cajero:</span><span>${venta.usuario_nombre}</span></div>`;
-    if (cfg.ticket_venta_mostrar_items && items && items.length > 0) {
-      html += `<div class="line"></div><table><thead><tr><th>Producto</th><th class="r">Cant</th><th class="r">P.U.</th><th class="r">Total</th></tr></thead><tbody>`;
-      for (const it of items)
-        html += `<tr><td>${it.producto_nombre}${it.codigo ? '<br><small>' + it.codigo + '</small>' : ''}</td><td class="r">${it.cantidad}</td><td class="r">${fmtM(it.precio_unitario)}</td><td class="r">${fmtM(it.subtotal)}</td></tr>`;
-      html += `</tbody></table>`;
-    }
-    html += `<div class="line"></div>`;
-    if (venta.descuento > 0) html += `<div class="row"><span>Descuento:</span><span>-${fmtM(venta.descuento)}</span></div>`;
-    html += `<div class="row" style="font-size:15px;font-weight:bold;margin:4px 0;"><span>TOTAL:</span><span>${fmtM(venta.total)}</span></div>`;
-    if (cfg.ticket_venta_mostrar_metodo && pagos && pagos.length > 0) {
-      html += `<div class="line"></div>`;
-      for (const p of pagos) html += `<div class="row"><span>${metodosLabel[p.metodo] || p.metodo}:</span><span>${fmtM(p.monto)}</span></div>`;
-    }
-    const footer = cfg.ticket_venta_footer || 'Gracias por su compra';
-    if (footer) html += `<div class="line"></div><div class="footer">${footer}</div>`;
-    html += `</body></html>`;
-
+    const html = buildVentaTicketHtml(data);
     const win = window.open('', '_blank', 'width=320,height=600');
     if (win) { win.document.write(html); win.document.close(); win.onload = () => win.print(); }
   } catch(e) { showToast('Error al generar ticket: ' + e.message, 'error'); }

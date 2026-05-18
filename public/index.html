@@ -1827,24 +1827,123 @@
           <i class="fa-solid fa-chevron-down cfg-collapse-chevron"></i>
         </div>
         <div class="cfg-collapse-body">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start;">
+            <!-- ── Columna izquierda: toggles agrupados ─────────────────── -->
             <div>
-              <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px;" data-i18n="cfg.tv.elementos">Elementos visibles</div>
-              <div style="display:flex;flex-direction:column;gap:2px;">
-                <label style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text2);cursor:pointer;padding:7px 0;border-bottom:1px solid var(--border);"><input type="checkbox" id="cfg-tv-logo" checked> <i class="fa-solid fa-image" style="width:16px;color:var(--text3);"></i> <span data-i18n="cfg.tv.logo">Logo</span></label>
-                <label style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text2);cursor:pointer;padding:7px 0;border-bottom:1px solid var(--border);"><input type="checkbox" id="cfg-tv-empresa" checked> <i class="fa-solid fa-store" style="width:16px;color:var(--text3);"></i> <span data-i18n="cfg.tv.empresa">Datos de empresa</span></label>
-                <label style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text2);cursor:pointer;padding:7px 0;border-bottom:1px solid var(--border);"><input type="checkbox" id="cfg-tv-folio" checked> <i class="fa-solid fa-hashtag" style="width:16px;color:var(--text3);"></i> <span data-i18n="cfg.tv.folio">Folio de venta</span></label>
-                <label style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text2);cursor:pointer;padding:7px 0;border-bottom:1px solid var(--border);"><input type="checkbox" id="cfg-tv-fecha" checked> <i class="fa-regular fa-calendar" style="width:16px;color:var(--text3);"></i> <span data-i18n="cfg.tv.fecha">Fecha y hora</span></label>
-                <label style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text2);cursor:pointer;padding:7px 0;border-bottom:1px solid var(--border);"><input type="checkbox" id="cfg-tv-cliente"> <i class="fa-solid fa-user" style="width:16px;color:var(--text3);"></i> <span data-i18n="cfg.tv.cliente">Nombre del cliente</span></label>
-                <label style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text2);cursor:pointer;padding:7px 0;border-bottom:1px solid var(--border);"><input type="checkbox" id="cfg-tv-items" checked> <i class="fa-solid fa-list" style="width:16px;color:var(--text3);"></i> <span data-i18n="cfg.tv.items">Detalle de productos</span></label>
-                <label style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text2);cursor:pointer;padding:7px 0;"><input type="checkbox" id="cfg-tv-metodo" checked> <i class="fa-solid fa-credit-card" style="width:16px;color:var(--text3);"></i> <span data-i18n="cfg.tv.metodo">Método de pago</span></label>
+              <div class="form-group" style="margin-bottom:16px;">
+                <label class="f-label">Título del ticket</label>
+                <input type="text" class="f-input" id="cfg-tv-titulo" placeholder="TICKET DE VENTA">
+              </div>
+
+              <div class="form-group" style="margin-bottom:16px;">
+                <label class="f-label">Ancho del ticket</label>
+                <select class="f-select" id="cfg-tv-ancho">
+                  <option value="58">58 mm (térmica chica)</option>
+                  <option value="80">80 mm (térmica grande)</option>
+                </select>
+              </div>
+
+              <!-- Empresa -->
+              <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin:16px 0 6px;border-top:1px solid var(--border);padding-top:14px;">Datos de la empresa</div>
+              <div style="display:flex;flex-direction:column;gap:1px;">
+                <label class="cfg-tk-toggle"><input type="checkbox" id="cfg-tv-logo"> <i class="fa-solid fa-image"></i> <span>Logo</span></label>
+                <label class="cfg-tk-toggle"><input type="checkbox" id="cfg-tv-empresa"> <i class="fa-solid fa-store"></i> <span>Nombre y local</span></label>
+                <label class="cfg-tk-toggle"><input type="checkbox" id="cfg-tv-direccion"> <i class="fa-solid fa-map-pin"></i> <span>Dirección</span></label>
+                <label class="cfg-tk-toggle"><input type="checkbox" id="cfg-tv-telefono"> <i class="fa-solid fa-phone"></i> <span>Teléfono</span></label>
+                <label class="cfg-tk-toggle"><input type="checkbox" id="cfg-tv-rfc"> <i class="fa-solid fa-id-card"></i> <span>RFC</span></label>
+              </div>
+
+              <!-- Venta -->
+              <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin:16px 0 6px;border-top:1px solid var(--border);padding-top:14px;">Datos de la venta</div>
+              <div style="display:flex;flex-direction:column;gap:1px;">
+                <label class="cfg-tk-toggle"><input type="checkbox" id="cfg-tv-folio"> <i class="fa-solid fa-hashtag"></i> <span>Folio</span></label>
+                <label class="cfg-tk-toggle"><input type="checkbox" id="cfg-tv-fecha"> <i class="fa-regular fa-calendar"></i> <span>Fecha y hora</span></label>
+                <label class="cfg-tk-toggle"><input type="checkbox" id="cfg-tv-cliente"> <i class="fa-solid fa-user"></i> <span>Cliente</span></label>
+                <label class="cfg-tk-toggle"><input type="checkbox" id="cfg-tv-vendedor"> <i class="fa-solid fa-user-tie"></i> <span>Cajero / vendedor</span></label>
+              </div>
+
+              <!-- Items -->
+              <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin:16px 0 6px;border-top:1px solid var(--border);padding-top:14px;">Productos</div>
+              <div style="display:flex;flex-direction:column;gap:1px;">
+                <label class="cfg-tk-toggle"><input type="checkbox" id="cfg-tv-items"> <i class="fa-solid fa-list"></i> <span>Tabla de productos</span></label>
+                <label class="cfg-tk-toggle"><input type="checkbox" id="cfg-tv-codigos"> <i class="fa-solid fa-barcode"></i> <span>Código bajo cada producto</span></label>
+              </div>
+
+              <!-- Totales -->
+              <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin:16px 0 6px;border-top:1px solid var(--border);padding-top:14px;">Totales y pago</div>
+              <div style="display:flex;flex-direction:column;gap:1px;">
+                <label class="cfg-tk-toggle"><input type="checkbox" id="cfg-tv-subtotal"> <i class="fa-solid fa-plus"></i> <span>Subtotal</span></label>
+                <label class="cfg-tk-toggle"><input type="checkbox" id="cfg-tv-descuento"> <i class="fa-solid fa-percent"></i> <span>Descuento</span></label>
+                <label class="cfg-tk-toggle"><input type="checkbox" id="cfg-tv-total"> <i class="fa-solid fa-coins"></i> <span>Total</span></label>
+                <label class="cfg-tk-toggle"><input type="checkbox" id="cfg-tv-metodo"> <i class="fa-solid fa-credit-card"></i> <span>Método de pago</span></label>
+              </div>
+
+              <!-- Pie -->
+              <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin:16px 0 6px;border-top:1px solid var(--border);padding-top:14px;">Pie del ticket</div>
+              <div style="display:flex;flex-direction:column;gap:1px;">
+                <label class="cfg-tk-toggle"><input type="checkbox" id="cfg-tv-gracias"> <i class="fa-solid fa-heart"></i> <span>Mostrar línea de agradecimiento</span></label>
               </div>
             </div>
+
+            <!-- ── Columna derecha: textos + imagen extra ────────────────── -->
             <div>
-              <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px;" data-i18n="cfg.tv.pie">Pie de ticket</div>
-              <textarea class="f-input" id="cfg-tv-footer" rows="6" placeholder="Gracias por su compra" style="resize:vertical;font-family:inherit;width:100%;"></textarea>
+              <div class="form-group" style="margin-bottom:14px;">
+                <label class="f-label">Pie de ticket (línea de agradecimiento)</label>
+                <textarea class="f-input" id="cfg-tv-footer" rows="2" placeholder="Gracias por su compra" style="resize:vertical;font-family:inherit;width:100%;"></textarea>
+                <div style="font-size:11px;color:var(--text3);margin-top:3px;">Solo se imprime si el toggle "Mostrar línea de agradecimiento" está activo.</div>
+              </div>
+
+              <div class="form-group" style="margin-bottom:14px;">
+                <label class="f-label">Texto extra al final</label>
+                <textarea class="f-input" id="cfg-tv-texto-extra" rows="4" placeholder="Cambios y devoluciones dentro de 7 días con ticket..." style="resize:vertical;font-family:inherit;width:100%;"></textarea>
+              </div>
+
+              <!-- Imagen extra -->
+              <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin:18px 0 8px;border-top:1px solid var(--border);padding-top:14px;">Imagen extra (publicidad, QR, etc.)</div>
+              <div id="cfg-tv-imagen-preview" style="margin-bottom:8px;text-align:center;">
+                <div style="color:var(--text3);font-size:12px;padding:18px;border:1px dashed var(--border);border-radius:8px;">Sin imagen</div>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+                <label class="btn-outline" for="cfg-tv-imagen-input" style="font-size:12px;cursor:pointer;">
+                  <i class="fa-solid fa-upload"></i> Subir imagen
+                </label>
+                <input type="file" id="cfg-tv-imagen-input" accept="image/*" style="display:none;" onchange="cfgTvHandleImagen(this.files[0])">
+                <button class="btn-outline" onclick="cfgTvQuitarImagen()" style="font-size:12px;color:var(--danger);">
+                  <i class="fa-solid fa-trash"></i> Quitar
+                </button>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <div>
+                  <label class="f-label" style="font-size:11px;">Tamaño <span id="cfg-tv-imagen-size-val" style="color:var(--accent);">60%</span></label>
+                  <input type="range" id="cfg-tv-imagen-size" min="20" max="100" value="60" step="5" style="width:100%;cursor:pointer;" oninput="$id('cfg-tv-imagen-size-val').textContent=this.value+'%';refreshTvPreview()">
+                </div>
+                <div>
+                  <label class="f-label" style="font-size:11px;">Posición</label>
+                  <select class="f-select" id="cfg-tv-imagen-pos" style="font-size:13px;" onchange="refreshTvPreview()">
+                    <option value="inicio">Al inicio (debajo del logo)</option>
+                    <option value="medio">En el medio</option>
+                    <option value="final" selected>Al final</option>
+                  </select>
+                </div>
+              </div>
             </div>
           </div>
+
+          <!-- Previsualización en vivo -->
+          <div style="margin-top:18px;border-top:1px solid var(--border);padding-top:14px;">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+              <i class="fa-solid fa-eye" style="color:var(--accent);"></i>
+              <div style="font-size:13px;font-weight:600;">Previsualización</div>
+              <span style="font-size:11px;color:var(--text3);">Se actualiza al cambiar cualquier opción</span>
+              <button class="btn-outline" onclick="refreshTvPreview()" style="margin-left:auto;font-size:11px;padding:4px 10px;">
+                <i class="fa-solid fa-rotate"></i> Refrescar
+              </button>
+            </div>
+            <div style="background:#f3f3f3;padding:14px;border-radius:8px;display:flex;justify-content:center;">
+              <iframe id="cfg-tv-preview" style="border:1px solid #ccc;background:#fff;width:320px;height:520px;border-radius:4px;" title="Vista previa del ticket de venta"></iframe>
+            </div>
+          </div>
+
           <div style="display:flex;justify-content:flex-end;margin-top:14px;border-top:1px solid var(--border);padding-top:14px;">
             <button class="btn-accent" onclick="saveConfiguracion()" style="font-size:13px;padding:9px 20px;">
               <i class="fa-solid fa-floppy-disk"></i> Guardar
@@ -1976,11 +2075,27 @@
                 </div>
               </div>
 
-              <button class="btn-outline" onclick="previewTicket()" style="font-size:13px;padding:9px 18px;margin-top:4px;">
-                <i class="fa-solid fa-eye"></i> <span data-i18n="cfg.ts.preview">Vista previa</span>
-              </button>
             </div>
           </div>
+
+          <!-- Previsualización en vivo del ticket de servicio -->
+          <div style="margin-top:18px;border-top:1px solid var(--border);padding-top:14px;">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+              <i class="fa-solid fa-eye" style="color:var(--accent);"></i>
+              <div style="font-size:13px;font-weight:600;">Previsualización</div>
+              <span style="font-size:11px;color:var(--text3);">Se actualiza al cambiar cualquier opción</span>
+              <button class="btn-outline" onclick="refreshTsPreview()" style="margin-left:auto;font-size:11px;padding:4px 10px;">
+                <i class="fa-solid fa-rotate"></i> Refrescar
+              </button>
+              <button class="btn-outline" onclick="previewTicket()" style="font-size:11px;padding:4px 10px;" title="Abrir en ventana grande">
+                <i class="fa-solid fa-up-right-from-square"></i> Ver ampliado
+              </button>
+            </div>
+            <div style="background:#f3f3f3;padding:14px;border-radius:8px;display:flex;justify-content:center;">
+              <iframe id="cfg-ts-preview" style="border:1px solid #ccc;background:#fff;width:320px;height:560px;border-radius:4px;" title="Vista previa del ticket de servicio"></iframe>
+            </div>
+          </div>
+
           <div style="display:flex;justify-content:flex-end;margin-top:14px;border-top:1px solid var(--border);padding-top:14px;">
             <button class="btn-accent" onclick="saveConfiguracion()" style="font-size:13px;padding:9px 20px;">
               <i class="fa-solid fa-floppy-disk"></i> Guardar

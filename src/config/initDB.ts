@@ -901,6 +901,25 @@ export async function initDB(): Promise<void> {
   try { db.run("ALTER TABLE ticket_plantillas ADD COLUMN ticket_imagen_extra_size        INTEGER NOT NULL DEFAULT 60"); } catch(e) {}
   try { db.run("ALTER TABLE ticket_plantillas ADD COLUMN ticket_imagen_extra_pos         TEXT NOT NULL DEFAULT 'final'"); } catch(e) {}
 
+  // ── Personalización avanzada del TICKET DE VENTA (POS) ─────────────
+  // Mismo nivel de detalle que el ticket de servicio: título editable,
+  // toggles granulares, texto extra, imagen secundaria, ancho configurable.
+  try { db.run("ALTER TABLE configuracion ADD COLUMN ticket_venta_titulo               TEXT DEFAULT 'TICKET DE VENTA'"); } catch(e) {}
+  try { db.run("ALTER TABLE configuracion ADD COLUMN ticket_venta_mostrar_telefono     INTEGER NOT NULL DEFAULT 1"); } catch(e) {}
+  try { db.run("ALTER TABLE configuracion ADD COLUMN ticket_venta_mostrar_direccion    INTEGER NOT NULL DEFAULT 0"); } catch(e) {}
+  try { db.run("ALTER TABLE configuracion ADD COLUMN ticket_venta_mostrar_rfc          INTEGER NOT NULL DEFAULT 1"); } catch(e) {}
+  try { db.run("ALTER TABLE configuracion ADD COLUMN ticket_venta_mostrar_vendedor     INTEGER NOT NULL DEFAULT 1"); } catch(e) {}
+  try { db.run("ALTER TABLE configuracion ADD COLUMN ticket_venta_mostrar_subtotal     INTEGER NOT NULL DEFAULT 1"); } catch(e) {}
+  try { db.run("ALTER TABLE configuracion ADD COLUMN ticket_venta_mostrar_descuento    INTEGER NOT NULL DEFAULT 1"); } catch(e) {}
+  try { db.run("ALTER TABLE configuracion ADD COLUMN ticket_venta_mostrar_total        INTEGER NOT NULL DEFAULT 1"); } catch(e) {}
+  try { db.run("ALTER TABLE configuracion ADD COLUMN ticket_venta_mostrar_gracias      INTEGER NOT NULL DEFAULT 1"); } catch(e) {}
+  try { db.run("ALTER TABLE configuracion ADD COLUMN ticket_venta_mostrar_codigos      INTEGER NOT NULL DEFAULT 1"); } catch(e) {}
+  try { db.run("ALTER TABLE configuracion ADD COLUMN ticket_venta_texto_extra          TEXT"); } catch(e) {}
+  try { db.run("ALTER TABLE configuracion ADD COLUMN ticket_venta_imagen_extra         TEXT"); } catch(e) {}
+  try { db.run("ALTER TABLE configuracion ADD COLUMN ticket_venta_imagen_extra_size    INTEGER NOT NULL DEFAULT 60"); } catch(e) {}
+  try { db.run("ALTER TABLE configuracion ADD COLUMN ticket_venta_imagen_extra_pos     TEXT NOT NULL DEFAULT 'final'"); } catch(e) {}
+  try { db.run("ALTER TABLE configuracion ADD COLUMN ticket_venta_ancho_mm             INTEGER NOT NULL DEFAULT 58"); } catch(e) {}
+
   // ── Catálogo de módulos de permiso ────────────────────────────────
   // Cada fila representa un permiso configurable por usuario (empleado).
   // - key: identificador interno usado en checkPermiso(modulo, accion)
